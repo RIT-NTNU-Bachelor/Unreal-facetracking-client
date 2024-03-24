@@ -6,6 +6,7 @@ AHeadTracking::AHeadTracking()
 {
     // Set this actor to call Tick() every frame.
     PrimaryActorTick.bCanEverTick = true;
+
     // Create and attach the UDPReceiver component
     UDPReceiverComponent = CreateDefaultSubobject<UUDPReceiver>(TEXT("UDPReceiverComponent"));
 
@@ -14,17 +15,21 @@ AHeadTracking::AHeadTracking()
     RootComponent = CameraComponent;
 }
 
+/*
+* Runs when the game plays.
+*/
 void AHeadTracking::BeginPlay()
 {
     Super::BeginPlay();
-    FString socketName = "localhost";   // Change if not localhost
-    FString TheIP = "127.0.0.1";        // Change this to your server's IP address
-    int32 ThePort = 5052;               // Change this to your server's port
 
-    // Example: Directly call a method on UDPReceiverComponent
+    FString socketName = "localhost";   // Not necessary to change.
+    FString TheIP = "127.0.0.1";        // Change this to your server's IP address.
+    int32 ThePort = 5052;               // Change this to your server's port.
+
+    // If the UDPReceiverComponent is initialized, do this..
     if (UDPReceiverComponent)
     {
-        // Assuming StartUDPReceiver is a method within UUDPReceiver
+        // StartUDPReceiver is a method within UUDPReceiver
         bool bStarted = UDPReceiverComponent->StartUDPReceiver(socketName, TheIP, ThePort);
         if (bStarted)
         {
@@ -36,8 +41,9 @@ void AHeadTracking::BeginPlay()
         }
     }
 
-    APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-    if (PlayerController)
+    APlayerController* PlayerController = GetWorld()->GetFirstPlayerController(); // Retrieves the FP controller.
+    // If FP controller is found, set new actor location and rotation.
+    if (PlayerController) 
     {
         APawn* CurrentPawn = PlayerController->GetPawn();
 
@@ -52,48 +58,59 @@ void AHeadTracking::BeginPlay()
     }
 }
 
+/*
+* Every tick in the game, this function will be run.
+* It updated the head position using the method: UpdateHeadPosition.
+*/
 void AHeadTracking::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
     UpdateHeadPosition();
 }
 
+/*
+* Updates head position based on the UDP component data.
+*/
 void AHeadTracking::UpdateHeadPosition()
 {
     FString Data = "";
 
     if (UDPReceiverComponent->ReceiveUDPData(Data))
     {
-        // Assuming the data format is "X,Y"
-        Data = Data.RightChop(1);
-        Data = Data.LeftChop(1);
+        // Assuming the data format is: '(X,Y)'. There is a b first, but not read in this context.
+        Data = Data.RightChop(2);   // Removes '(
+        Data = Data.LeftChop(2);    // Removes )'
 
         TArray<FString> Points;
         Data.ParseIntoArray(Points, TEXT(","), true);
 
-        if (Points.Num() >= 2)
+        if (Points.Num() >= 2) // 2 or more points: x, y, may also include z.
         {
-            float X = (FCString::Atof(*Points[0]) - 320) / 100.0f;
-            float Y = (FCString::Atof(*Points[1]) - 240) / 100.0f;
+            float X = (FCString::Atof(*Points[0])); // Parses X into float from FCString.
+            float Y = (FCString::Atof(*Points[1])); // Parses Y into float from FCString.
 
+            // Adds the data to a list to find average of X and Y. Smooths the movement.
             XList.Add(X);
             YList.Add(Y);
-
-            if (XList.Num() > 50) XList.RemoveAt(0);
-            if (YList.Num() > 50) YList.RemoveAt(0);
-
+            if (XList.Num() > bufferSize) XList.RemoveAt(0);
+            if (YList.Num() > bufferSize) YList.RemoveAt(0);
             float XAverage = CalculateAverage(XList);
             float YAverage = CalculateAverage(YList);
+            
+            // New position of the camera after handling as FVector, the standard format of coordinates.
+            FVector NewPosition = FVector(X * 5.0f, CameraComponent->GetComponentLocation().Z, Y * 5.0f);
+            // New position of the camera after handling as FRotator, the standard format of rotation.
+            FRotator NewRotation = FRotator(YAverage, XAverage, 0.0f);
 
-            FVector NewPosition = FVector(-26.75f - XAverage, 2.9f - YAverage, CameraComponent->GetComponentLocation().Z);
-            //FRotator NewRotation = FRotator(18.76f - YAverage * 10, XAverage * 10, 0.0f);
-
-            CameraComponent->SetRelativeLocation(NewPosition);
-            //CameraComponent->SetRelativeRotation(NewRotation);
+            CameraComponent->SetRelativeLocation(NewPosition); // Sets new position.
+            CameraComponent->SetRelativeRotation(NewRotation); // Sets new rotation.
         }
     }
 }
 
+/*
+* Simple average calculation.
+*/
 float AHeadTracking::CalculateAverage(const TArray<float>& Values)
 {
     if (Values.Num() == 0)

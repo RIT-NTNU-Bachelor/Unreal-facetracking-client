@@ -2,7 +2,6 @@
 
 #pragma once
 
-
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Runtime/Networking/Public/Networking.h"
@@ -24,12 +23,12 @@ public:
 
 public:
 	FSocket* Socket;
-
+	// Method to initialize receiving of data.
 	bool StartUDPReceiver(const FString& YourChosenSocketName, const FString& TheIP, const int32 ThePort);
-
+	// Handling of UDP data.
 	bool ReceiveUDPData(FString& OutReceivedData);
 
 public:
-	// Called every frame
+	// Extention of Tick function for an actor, will run in tandem.
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 };

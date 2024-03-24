@@ -5,9 +5,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "Camera/CameraComponent.h"
-#include <iostream>
 #include "EngineUtils.h"
 #include "UDPReceiver.h"
+#include <iostream>
 
 #include "HeadTracking.generated.h"
 
@@ -27,21 +27,27 @@ protected:
 public:
     // Called every frame
     void Tick(float DeltaTime) override;
+
+    // Sets new property and UDP receiver component. Necessary to use the custom UDPReceiver component.
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Networking")
     UUDPReceiver* UDPReceiverComponent;
 
+    // Sets new property and Camera component. Necessary to use the custom head tracking C++ class.
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Head Tracking")
     UCameraComponent* CameraComponent;
-    // Standard spawn location for the AHeadTracking pawn
-    FVector SpawnLocation = FVector(-100.0f, 0.0f, 150.0f); // Default to origin
 
-    // Standard spawn rotation for the AHeadTracking pawn
-    FRotator SpawnRotation = FRotator(0.0f, 0.0f, 0.0f); // Default to no rotation
+    // Standard spawn location & rotation, for the AHeadTracking pawn
+    FVector SpawnLocation = FVector(0.0f, 750.0f, 150.0f); // Default to origin
+    FRotator SpawnRotation = FRotator(0.0f, -90.0f, 0.0f); // Default to no rotation
 
 private:
+    // X and Y coordinate lists for average calculation.
     TArray<float> XList;
     TArray<float> YList;
 
+    const int8 bufferSize = 20; // Size of the buffer: coordinate data.
+
+    // Private functions.
     void UpdateHeadPosition();
     float CalculateAverage(const TArray<float>& Values);
 };
