@@ -38,22 +38,24 @@ public:
 
     // Modifiers in UE.
     UPROPERTY(EditAnywhere, Category = "Tweaking")
-        bool IncludeRotation;
+        bool IncludeRotation;                       // Include rotation estimation boolean.
     UPROPERTY(EditAnywhere, Category = "Tweaking")
-        float MultiplierMovement;
+        bool UseSmoothing;                          // Include smoothing of movement boolean.
     UPROPERTY(EditAnywhere, Category = "Tweaking")
-        float MultiplierRotation;
+        int16 SmoothingBufferSize;                  // Set smoothing buffer size, higher equals smoother movement.
+    UPROPERTY(EditAnywhere, Category = "Tweaking")
+        float MultiplierMovement;                   // Amount of movement multiplier.
+    UPROPERTY(EditAnywhere, Category = "Tweaking")
+        float MultiplierRotation;                   // Rotation multiplier.
     
     // Standard spawn location & rotation, for the AHeadTracking pawn
     FVector SpawnLocation = FVector(0.0f, 0.0f, 150.0f); // Default to origin
-    FRotator SpawnRotation = FRotator(0.0f, 0.0f, 0.0f); // Default to no rotation
+    FRotator SpawnRotation = FRotator(0.0f, -90.0f, 0.0f); // Default to no rotation
 
 private:
     // X and Y coordinate lists for average calculation.
     TArray<float> XList;
     TArray<float> YList;
-
-    const int8 bufferSize = 50; // Size of the buffer: coordinate data.
 
     // Private functions.
     void UpdateHeadPosition();

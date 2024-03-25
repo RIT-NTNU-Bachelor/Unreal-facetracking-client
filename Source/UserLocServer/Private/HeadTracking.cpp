@@ -8,6 +8,8 @@ AHeadTracking::AHeadTracking()
     PrimaryActorTick.bCanEverTick = true;
 
     IncludeRotation = true;
+    UseSmoothing = true;
+    SmoothingBufferSize = 10;
     MultiplierMovement = 1.0f;
     MultiplierRotation = 1.0f;
 
@@ -78,9 +80,15 @@ void AHeadTracking::Tick(float DeltaTime)
 void AHeadTracking::UpdateHeadPosition()
 {
     FString Data = "";
+    FVector LastKnownPosition = SpawnLocation;
+    FRotator LastKnownRotation = SpawnRotation;
 
     if (UDPReceiverComponent->ReceiveUDPData(Data))
     {
+        if (Data.IsEmpty())
+        {
+            return;
+        }
         // Assuming the data format is: '(X,Y)'. There is a b first, but not read in this context.
         Data = Data.RightChop(2);   // Removes '(
         Data = Data.LeftChop(2);    // Removes )'
@@ -94,28 +102,33 @@ void AHeadTracking::UpdateHeadPosition()
             float Y = (FCString::Atof(*Points[1])) / 20.0f; // Parses Y into float from FCString.
 
             // Adds the data to a list to find average of X and Y. Smooths the movement.
-            XList.Add(X);
-            YList.Add(Y);
-            if (XList.Num() > bufferSize) XList.RemoveAt(0);
-            if (YList.Num() > bufferSize) YList.RemoveAt(0);
-            float XAverage = CalculateAverage(XList);
-            float YAverage = CalculateAverage(YList);
+            if (UseSmoothing)
+            {
+                XList.Add(X);
+                YList.Add(Y);
+                if (XList.Num() > SmoothingBufferSize) XList.RemoveAt(0);
+                if (YList.Num() > SmoothingBufferSize) YList.RemoveAt(0);
+                X = CalculateAverage(XList);
+                Y= CalculateAverage(YList);
+            }
             
-            UE_LOG(LogTemp, Log, TEXT("X: %f, Y: %f"), XAverage, YAverage);
+            // UE_LOG(LogTemp, Log, TEXT("X: %f, Y: %f"), X, Y);
 
             // New position of the camera after handling as FVector, the standard format of coordinates.
-            FVector NewPosition = FVector(X * MultiplierMovement, CameraComponent->GetComponentLocation().Z, 100 + Y * MultiplierMovement);
+            LastKnownPosition = FVector(-X * MultiplierMovement, CameraComponent->GetComponentLocation().Z, 150 + (- Y * MultiplierMovement));
             // New position of the camera after handling as FRotator, the standard format of rotation.
-            FRotator NewRotation = FRotator(YAverage * MultiplierRotation, -90.0f + XAverage, 0.0f);
+            LastKnownRotation = FRotator(Y * MultiplierRotation, -90.0f + X, 0.0f);
 
-            CameraComponent->SetWorldLocation(NewPosition); // Sets new position in the world.
+            CameraComponent->SetRelativeLocation(LastKnownPosition); // Sets new position in the world.
             // Option to remove rotation aspect of camera movement in UE.
             if (IncludeRotation)
             {
-                CameraComponent->SetRelativeRotation(NewRotation); // Sets new rotation relative to parent.
+                CameraComponent->SetRelativeRotation(LastKnownRotation); // Sets new rotation relative to parent.
             }
         }
     }
+    FString location = CameraComponent->GetComponentLocation().ToString();
+    UE_LOG(LogTemp, Log, TEXT("%s"), *FString(location));
 }
 
 /*
