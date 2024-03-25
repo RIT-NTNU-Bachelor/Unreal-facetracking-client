@@ -7,6 +7,10 @@ AHeadTracking::AHeadTracking()
     // Set this actor to call Tick() every frame.
     PrimaryActorTick.bCanEverTick = true;
 
+    IncludeRotation = true;
+    MultiplierMovement = 1.0f;
+    MultiplierRotation = 1.0f;
+
     // Create and attach the UDPReceiver component
     UDPReceiverComponent = CreateDefaultSubobject<UUDPReceiver>(TEXT("UDPReceiverComponent"));
 
@@ -100,12 +104,16 @@ void AHeadTracking::UpdateHeadPosition()
             UE_LOG(LogTemp, Log, TEXT("X: %f, Y: %f"), XAverage, YAverage);
 
             // New position of the camera after handling as FVector, the standard format of coordinates.
-            FVector NewPosition = FVector(X * 5.0f, CameraComponent->GetComponentLocation().Z, 100 + Y * 5.0f);
+            FVector NewPosition = FVector(X * MultiplierMovement, CameraComponent->GetComponentLocation().Z, 100 + Y * MultiplierMovement);
             // New position of the camera after handling as FRotator, the standard format of rotation.
-            FRotator NewRotation = FRotator(YAverage, -90.0f + XAverage, 0.0f);
+            FRotator NewRotation = FRotator(YAverage * MultiplierRotation, -90.0f + XAverage, 0.0f);
 
             CameraComponent->SetWorldLocation(NewPosition); // Sets new position in the world.
-            CameraComponent->SetRelativeRotation(NewRotation); // Sets new rotation relative to parent.
+            // Option to remove rotation aspect of camera movement in UE.
+            if (IncludeRotation)
+            {
+                CameraComponent->SetRelativeRotation(NewRotation); // Sets new rotation relative to parent.
+            }
         }
     }
 }

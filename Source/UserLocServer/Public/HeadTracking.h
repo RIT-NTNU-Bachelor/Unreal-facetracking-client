@@ -33,9 +33,17 @@ public:
     UUDPReceiver* UDPReceiverComponent;
 
     // Sets new property and Camera component. Necessary to use the custom head tracking C++ class.
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Head Tracking")
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Head Tracking")
     UCameraComponent* CameraComponent;
 
+    // Modifiers in UE.
+    UPROPERTY(EditAnywhere, Category = "Tweaking")
+        bool IncludeRotation;
+    UPROPERTY(EditAnywhere, Category = "Tweaking")
+        float MultiplierMovement;
+    UPROPERTY(EditAnywhere, Category = "Tweaking")
+        float MultiplierRotation;
+    
     // Standard spawn location & rotation, for the AHeadTracking pawn
     FVector SpawnLocation = FVector(0.0f, 0.0f, 150.0f); // Default to origin
     FRotator SpawnRotation = FRotator(0.0f, 0.0f, 0.0f); // Default to no rotation
