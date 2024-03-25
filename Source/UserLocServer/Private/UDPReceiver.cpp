@@ -6,6 +6,24 @@ UUDPReceiver::UUDPReceiver()
 {
     // Sets it to be able to tick with world and actor.
     PrimaryComponentTick.bCanEverTick = true;
+    // Allows any parent to destroy the instance.
+    bAllowAnyoneToDestroyMe = true;
+}
+
+/*
+* Activates when the game is stopped.
+*/
+void UUDPReceiver::BeginDestroy()
+{
+    Super::BeginDestroy();
+
+    // Ensures the socket is properly closed
+    if (Socket)
+    {
+        Socket->Close();
+        ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->DestroySocket(Socket);
+        Socket = nullptr;
+    }
 }
 
 /*
@@ -63,7 +81,7 @@ bool UUDPReceiver::ReceiveUDPData(FString& OutReceivedData)
     TArray<uint8> ReceivedData;
     uint32 Size;
     while (Socket->HasPendingData(Size))
-    {
+    {        
         ReceivedData.Init(0, FMath::Min(Size, 65507u));
 
         int32 Read = 0;
@@ -75,6 +93,5 @@ bool UUDPReceiver::ReceiveUDPData(FString& OutReceivedData)
             return true;
         }
     }
-
     return false;
 }

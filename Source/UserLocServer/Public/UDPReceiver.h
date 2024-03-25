@@ -22,6 +22,8 @@ public:
 	UUDPReceiver();
 
 public:
+	void BeginDestroy() override;
+
 	FSocket* Socket;
 	// Method to initialize receiving of data.
 	bool StartUDPReceiver(const FString& YourChosenSocketName, const FString& TheIP, const int32 ThePort);

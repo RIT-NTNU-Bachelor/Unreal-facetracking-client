@@ -86,8 +86,8 @@ void AHeadTracking::UpdateHeadPosition()
 
         if (Points.Num() >= 2) // 2 or more points: x, y, may also include z.
         {
-            float X = (FCString::Atof(*Points[0])); // Parses X into float from FCString.
-            float Y = (FCString::Atof(*Points[1])); // Parses Y into float from FCString.
+            float X = (FCString::Atof(*Points[0])) / 20.0f; // Parses X into float from FCString.
+            float Y = (FCString::Atof(*Points[1])) / 20.0f; // Parses Y into float from FCString.
 
             // Adds the data to a list to find average of X and Y. Smooths the movement.
             XList.Add(X);
@@ -97,13 +97,15 @@ void AHeadTracking::UpdateHeadPosition()
             float XAverage = CalculateAverage(XList);
             float YAverage = CalculateAverage(YList);
             
-            // New position of the camera after handling as FVector, the standard format of coordinates.
-            FVector NewPosition = FVector(X * 5.0f, CameraComponent->GetComponentLocation().Z, Y * 5.0f);
-            // New position of the camera after handling as FRotator, the standard format of rotation.
-            FRotator NewRotation = FRotator(YAverage, XAverage, 0.0f);
+            UE_LOG(LogTemp, Log, TEXT("X: %f, Y: %f"), XAverage, YAverage);
 
-            CameraComponent->SetRelativeLocation(NewPosition); // Sets new position.
-            CameraComponent->SetRelativeRotation(NewRotation); // Sets new rotation.
+            // New position of the camera after handling as FVector, the standard format of coordinates.
+            FVector NewPosition = FVector(X * 5.0f, CameraComponent->GetComponentLocation().Z, 100 + Y * 5.0f);
+            // New position of the camera after handling as FRotator, the standard format of rotation.
+            FRotator NewRotation = FRotator(YAverage, -90.0f + XAverage, 0.0f);
+
+            CameraComponent->SetWorldLocation(NewPosition); // Sets new position in the world.
+            CameraComponent->SetRelativeRotation(NewRotation); // Sets new rotation relative to parent.
         }
     }
 }

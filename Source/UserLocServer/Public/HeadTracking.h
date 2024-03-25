@@ -37,15 +37,15 @@ public:
     UCameraComponent* CameraComponent;
 
     // Standard spawn location & rotation, for the AHeadTracking pawn
-    FVector SpawnLocation = FVector(0.0f, 750.0f, 150.0f); // Default to origin
-    FRotator SpawnRotation = FRotator(0.0f, -90.0f, 0.0f); // Default to no rotation
+    FVector SpawnLocation = FVector(0.0f, 0.0f, 150.0f); // Default to origin
+    FRotator SpawnRotation = FRotator(0.0f, 0.0f, 0.0f); // Default to no rotation
 
 private:
     // X and Y coordinate lists for average calculation.
     TArray<float> XList;
     TArray<float> YList;
 
-    const int8 bufferSize = 20; // Size of the buffer: coordinate data.
+    const int8 bufferSize = 50; // Size of the buffer: coordinate data.
 
     // Private functions.
     void UpdateHeadPosition();
