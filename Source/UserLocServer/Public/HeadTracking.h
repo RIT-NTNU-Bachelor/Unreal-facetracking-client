@@ -56,6 +56,7 @@ private:
     // X and Y coordinate lists for average calculation.
     TArray<float> XList;
     TArray<float> YList;
+    TArray<float> ZList;
 
     // Private functions.
     void UpdateHeadPosition();

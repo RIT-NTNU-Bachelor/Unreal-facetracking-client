@@ -98,26 +98,29 @@ void AHeadTracking::UpdateHeadPosition()
 
         if (Points.Num() >= 2) // 2 or more points: x, y, may also include z.
         {
-            float X = (FCString::Atof(*Points[0])) / 20.0f; // Parses X into float from FCString.
-            float Y = (FCString::Atof(*Points[1])) / 20.0f; // Parses Y into float from FCString.
+            float X = (FCString::Atof(*Points[0]) - 32.0f); // Parses X into float from FCString.
+            float Y = (FCString::Atof(*Points[1]) - 240.0f); // Parses Y into float from FCString.
+            float Z = (FCString::Atof(*Points[2]) - 60.0f); // Parses Z into float from FCString.
 
             // Adds the data to a list to find average of X and Y. Smooths the movement.
             if (UseSmoothing)
             {
                 XList.Add(X);
                 YList.Add(Y);
+                ZList.Add(Z);
                 if (XList.Num() > SmoothingBufferSize) XList.RemoveAt(0);
                 if (YList.Num() > SmoothingBufferSize) YList.RemoveAt(0);
+                if (ZList.Num() > SmoothingBufferSize) ZList.RemoveAt(0);
                 X = CalculateAverage(XList);
-                Y= CalculateAverage(YList);
+                Y = CalculateAverage(YList);
+                Z = CalculateAverage(ZList);
             }
             
-            // UE_LOG(LogTemp, Log, TEXT("X: %f, Y: %f"), X, Y);
-
             // New position of the camera after handling as FVector, the standard format of coordinates.
-            LastKnownPosition = FVector(-X * MultiplierMovement, CameraComponent->GetComponentLocation().Z, 150 + (- Y * MultiplierMovement));
+            LastKnownPosition = FVector((- X) * MultiplierMovement, (-Z * MultiplierMovement), (-Y * MultiplierMovement));
+
             // New position of the camera after handling as FRotator, the standard format of rotation.
-            LastKnownRotation = FRotator(Y * MultiplierRotation, -90.0f + X, 0.0f);
+            LastKnownRotation = FRotator(Y * MultiplierRotation, X - 90.0f, 0.0f);
 
             CameraComponent->SetRelativeLocation(LastKnownPosition); // Sets new position in the world.
             // Option to remove rotation aspect of camera movement in UE.
@@ -125,7 +128,7 @@ void AHeadTracking::UpdateHeadPosition()
             {
                 CameraComponent->SetRelativeRotation(LastKnownRotation); // Sets new rotation relative to parent.
             }
-        }
+        } 
     }
     FString location = CameraComponent->GetComponentLocation().ToString();
     UE_LOG(LogTemp, Log, TEXT("%s"), *FString(location));
