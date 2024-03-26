@@ -7,6 +7,9 @@ AHeadTracking::AHeadTracking()
     // Set this actor to call Tick() every frame.
     PrimaryActorTick.bCanEverTick = true;
 
+    //StartLocation = FVector(0.0f, 0.0f, 0.0f);
+    //StartDirection = FRotator(0.0f, 0.0f, 0.0f);
+
     IncludeRotation = true;
     UseSmoothing = true;
     ZAxis = false;
@@ -59,8 +62,8 @@ void AHeadTracking::BeginPlay()
         if (HeadTrackingPawn != nullptr)
         {
             // If it's already a HeadTrackingPawn, just move it to the standard location and rotation
-            HeadTrackingPawn->SetActorLocation(SpawnLocation);
-            HeadTrackingPawn->SetActorRotation(SpawnRotation);
+            HeadTrackingPawn->SetActorLocation(StartLocation);
+            HeadTrackingPawn->SetActorRotation(StartDirection);
         }
     }
 }
@@ -81,10 +84,8 @@ void AHeadTracking::Tick(float DeltaTime)
 void AHeadTracking::UpdateHeadPosition()
 {
     FString Data = "";
-    FVector LastKnownPosition = SpawnLocation;
-    FRotator LastKnownRotation = SpawnRotation;
-    Z = 0.0f;
-    float newZ = 0.0f;
+    FVector LastKnownPosition = StartLocation;
+    FRotator LastKnownRotation = StartDirection;
 
     if (UDPReceiverComponent->ReceiveUDPData(Data))
     {
@@ -100,7 +101,7 @@ void AHeadTracking::UpdateHeadPosition()
         TArray<FString> Points;
         Data.ParseIntoArray(Points, TEXT(","), true);
         
-        if (Points.Num() >= 3) // 2 or more points: x, y, may also include z.
+        if (Points.Num() >= 2) // 2 or more points: x, y, may also include z.
         {
             X = (FCString::Atof(*Points[0]) - 320.0f); // Parses X into float from FCString.
             Y = (FCString::Atof(*Points[1]) - 280.0f); // Parses Y into float from FCString.
@@ -123,14 +124,14 @@ void AHeadTracking::UpdateHeadPosition()
             }
             
             // New position of the camera after handling as FVector, the standard format of coordinates.
-            LastKnownPosition = FVector((- X * MultiplierMovement), (Z * MultiplierMovement), (-Y * MultiplierMovement));
+            LastKnownPosition = FVector(StartLocation.Z + (-Z * MultiplierMovement * 2), StartLocation.X + (- X * MultiplierMovement), StartLocation.Y + (-Y * MultiplierMovement));
             CameraComponent->SetRelativeLocation(LastKnownPosition); // Sets new position in the world.
             
             // Option to remove rotation aspect of camera movement in UE.
             if (IncludeRotation)
             {
                 // New position of the camera after handling as FRotator, the standard format of rotation.
-                LastKnownRotation = FRotator(Y * MultiplierRotation, -90 + X * MultiplierRotation, 0.0f);
+                LastKnownRotation = FRotator(Y * MultiplierRotation, X * MultiplierRotation, 0.0f);
                 CameraComponent->SetWorldRotation(LastKnownRotation); // Sets new rotation relative to parent.
             }
         } 

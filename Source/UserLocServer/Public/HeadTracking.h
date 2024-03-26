@@ -38,6 +38,10 @@ public:
 
     // Modifiers in UE.
     UPROPERTY(EditAnywhere, Category = "Tweaking")
+        FVector StartLocation;
+    UPROPERTY(EditAnywhere, Category = "Tweaking")
+        FRotator StartDirection;
+    UPROPERTY(EditAnywhere, Category = "Tweaking")
         bool IncludeRotation;                       // Include rotation estimation boolean.
     UPROPERTY(EditAnywhere, Category = "Tweaking")
         bool UseSmoothing;                          // Include smoothing of movement boolean.
@@ -50,10 +54,6 @@ public:
     UPROPERTY(EditAnywhere, Category = "Tweaking")
         float MultiplierRotation;                   // Rotation multiplier.
     
-    // Standard spawn location & rotation, for the AHeadTracking pawn
-    FVector SpawnLocation = FVector(0.0f, 0.0f, 150.0f); // Default to origin
-    FRotator SpawnRotation = FRotator(0.0f, -90.0f, 0.0f); // Default to no rotation
-
 private:
     // X and Y coordinate lists for average calculation.
     float X;
