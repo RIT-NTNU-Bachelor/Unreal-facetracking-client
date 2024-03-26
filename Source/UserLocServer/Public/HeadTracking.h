@@ -42,6 +42,8 @@ public:
     UPROPERTY(EditAnywhere, Category = "Tweaking")
         bool UseSmoothing;                          // Include smoothing of movement boolean.
     UPROPERTY(EditAnywhere, Category = "Tweaking")
+        bool ZAxis;                                 // Include Z axis usage boolean.
+    UPROPERTY(EditAnywhere, Category = "Tweaking")
         int16 SmoothingBufferSize;                  // Set smoothing buffer size, higher equals smoother movement.
     UPROPERTY(EditAnywhere, Category = "Tweaking")
         float MultiplierMovement;                   // Amount of movement multiplier.
@@ -54,6 +56,10 @@ public:
 
 private:
     // X and Y coordinate lists for average calculation.
+    float X;
+    float Y;
+    float Z;
+    
     TArray<float> XList;
     TArray<float> YList;
     TArray<float> ZList;
