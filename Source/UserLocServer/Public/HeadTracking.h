@@ -48,6 +48,8 @@ public:
     UPROPERTY(EditAnywhere, Category = "Tweaking")
         bool ZAxis;                                 // Include Z axis usage boolean.
     UPROPERTY(EditAnywhere, Category = "Tweaking")
+        float ZSensistivity;
+    UPROPERTY(EditAnywhere, Category = "Tweaking")
         int16 SmoothingBufferSize;                  // Set smoothing buffer size, higher equals smoother movement.
     UPROPERTY(EditAnywhere, Category = "Tweaking")
         float MultiplierMovement;                   // Amount of movement multiplier.

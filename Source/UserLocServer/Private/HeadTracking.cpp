@@ -7,8 +7,8 @@ AHeadTracking::AHeadTracking()
     // Set this actor to call Tick() every frame.
     PrimaryActorTick.bCanEverTick = true;
 
-    //StartLocation = FVector(0.0f, 0.0f, 0.0f);
-    //StartDirection = FRotator(0.0f, 0.0f, 0.0f);
+    StartLocation = FVector(0.0f, 0.0f, 0.0f);
+    StartDirection = FRotator(0.0f, 0.0f, 0.0f);
 
     IncludeRotation = true;
     UseSmoothing = true;
@@ -124,14 +124,14 @@ void AHeadTracking::UpdateHeadPosition()
             }
             
             // New position of the camera after handling as FVector, the standard format of coordinates.
-            LastKnownPosition = FVector(StartLocation.Z + (-Z * MultiplierMovement * 2), StartLocation.X + (- X * MultiplierMovement), StartLocation.Y + (-Y * MultiplierMovement));
+            LastKnownPosition = StartLocation + FVector((- X * MultiplierMovement), (Z * MultiplierMovement * ZSensistivity), (-Y * MultiplierMovement));
             CameraComponent->SetRelativeLocation(LastKnownPosition); // Sets new position in the world.
             
             // Option to remove rotation aspect of camera movement in UE.
             if (IncludeRotation)
             {
                 // New position of the camera after handling as FRotator, the standard format of rotation.
-                LastKnownRotation = FRotator(Y * MultiplierRotation, X * MultiplierRotation, 0.0f);
+                LastKnownRotation = StartDirection + FRotator(Y * MultiplierRotation, X * MultiplierRotation, 0.0f);
                 CameraComponent->SetWorldRotation(LastKnownRotation); // Sets new rotation relative to parent.
             }
         } 
