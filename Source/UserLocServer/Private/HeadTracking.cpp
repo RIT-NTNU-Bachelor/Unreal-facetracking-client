@@ -7,22 +7,19 @@ AHeadTracking::AHeadTracking()
     // Set this actor to call Tick() every frame.
     PrimaryActorTick.bCanEverTick = true;
 
-    //StartLocation = FVector(0.0f, 0.0f, 0.0f);
-    //StartDirection = FRotator(0.0f, 0.0f, 0.0f);
-
-    IncludeRotation = true;
     UseSmoothing = true;
     ZAxis = false;
     SmoothingBufferSize = 10;
-    MultiplierMovement = 1.0f;
     MultiplierRotation = 0.1f;
 
     // Create and attach the UDPReceiver component
     UDPReceiverComponent = CreateDefaultSubobject<UUDPReceiver>(TEXT("UDPReceiverComponent"));
 
     // Create and setup the camera component as a subcomponent.
-    CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
-    RootComponent = CameraComponent;
+    //CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
+
+    ShapeComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CameraComponent"));
+    RootComponent = ShapeComponent;
 }
 
 /*
@@ -104,8 +101,8 @@ void AHeadTracking::UpdateHeadPosition()
         if (Points.Num() >= 2) // 2 or more points: x, y, may also include z.
         {
             X = (FCString::Atof(*Points[0]) - 320.0f); // Parses X into float from FCString.
-            Y = (FCString::Atof(*Points[1]) - 280.0f); // Parses Y into float from FCString.
-            if (ZAxis) Z = (FCString::Atof(*Points[2]) - 60.0f); // Parses Z into float from FCString.
+            Y = (FCString::Atof(*Points[1]) - 240.0f); // Parses Y into float from FCString.
+            if (ZAxis) Z = (FCString::Atof(*Points[2]) - 60.0f) / 100.0f; // Parses Z into float from FCString.
 
             // Adds the data to a list to find average of X and Y. Smooths the movement.
             if (UseSmoothing)
@@ -120,20 +117,14 @@ void AHeadTracking::UpdateHeadPosition()
 
                 X = CalculateAverage(XList);
                 Y = CalculateAverage(YList);
-                if (ZAxis) Z = CalculateAverage(ZList);
+                if (ZAxis) Z = - CalculateAverage(ZList);
             }
             
-            // New position of the camera after handling as FVector, the standard format of coordinates.
-            LastKnownPosition = FVector(StartLocation.Z + (-Z * MultiplierMovement * 2), StartLocation.X + (- X * MultiplierMovement), StartLocation.Y + (-Y * MultiplierMovement));
-            CameraComponent->SetRelativeLocation(LastKnownPosition); // Sets new position in the world.
-            
-            // Option to remove rotation aspect of camera movement in UE.
-            if (IncludeRotation)
-            {
-                // New position of the camera after handling as FRotator, the standard format of rotation.
-                LastKnownRotation = FRotator(Y * MultiplierRotation, X * MultiplierRotation, 0.0f);
-                CameraComponent->SetWorldRotation(LastKnownRotation); // Sets new rotation relative to parent.
-            }
+            // New position of the camera after handling as FRotator, the standard format of rotation.
+            LastKnownRotation = FRotator(-Y * MultiplierRotation, -X * MultiplierRotation, 0.0f);
+            ShapeComponent->SetWorldRotation(LastKnownRotation); // Sets new rotation relative to parent.
+            FVector Scale = FVector(Z + 1.0f, Z + 1.0f, Z + 1.0f);
+            ShapeComponent->SetWorldScale3D(Scale);
         } 
     }
 }

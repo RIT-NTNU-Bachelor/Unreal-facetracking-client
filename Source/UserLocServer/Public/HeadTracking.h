@@ -33,8 +33,12 @@ public:
     UUDPReceiver* UDPReceiverComponent;
 
     // Sets new property and Camera component. Necessary to use the custom head tracking C++ class.
-    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Head Tracking")
-    UCameraComponent* CameraComponent;
+    //UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Head Tracking")
+    //UCameraComponent* CameraComponent;
+    
+    // Sets new property and Camera component. Necessary to use the custom head tracking C++ class.
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Shape Tracking")
+    UStaticMeshComponent* ShapeComponent;
 
     // Modifiers in UE.
     UPROPERTY(EditAnywhere, Category = "Tweaking")
@@ -42,15 +46,11 @@ public:
     UPROPERTY(EditAnywhere, Category = "Tweaking")
         FRotator StartDirection;
     UPROPERTY(EditAnywhere, Category = "Tweaking")
-        bool IncludeRotation;                       // Include rotation estimation boolean.
-    UPROPERTY(EditAnywhere, Category = "Tweaking")
         bool UseSmoothing;                          // Include smoothing of movement boolean.
     UPROPERTY(EditAnywhere, Category = "Tweaking")
         bool ZAxis;                                 // Include Z axis usage boolean.
     UPROPERTY(EditAnywhere, Category = "Tweaking")
         int16 SmoothingBufferSize;                  // Set smoothing buffer size, higher equals smoother movement.
-    UPROPERTY(EditAnywhere, Category = "Tweaking")
-        float MultiplierMovement;                   // Amount of movement multiplier.
     UPROPERTY(EditAnywhere, Category = "Tweaking")
         float MultiplierRotation;                   // Rotation multiplier.
     
