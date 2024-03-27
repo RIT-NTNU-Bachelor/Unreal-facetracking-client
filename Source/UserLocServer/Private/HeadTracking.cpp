@@ -12,10 +12,17 @@ AHeadTracking::AHeadTracking()
 
     IncludeRotation = true;
     UseSmoothing = true;
-    ZAxis = false;
-    SmoothingBufferSize = 10;
-    MultiplierMovement = 1.0f;
-    MultiplierRotation = 0.1f;
+    ZAxis = true;
+
+    SmoothingBufferSize = 5;
+
+    XMovementSensitivity = 1.0f;
+    YMovementSensitivity = 1.0f;
+    ZMovementSensitivity = 1.0f;
+
+    XRotationSensitivity = 0.1f;
+    YRotationSensitivity = 0.1f;
+    ZRotationSensitivity = 0.0f;
 
     // Create and attach the UDPReceiver component
     UDPReceiverComponent = CreateDefaultSubobject<UUDPReceiver>(TEXT("UDPReceiverComponent"));
@@ -124,14 +131,14 @@ void AHeadTracking::UpdateHeadPosition()
             }
             
             // New position of the camera after handling as FVector, the standard format of coordinates.
-            LastKnownPosition = StartLocation + FVector((- X * MultiplierMovement), (Z * MultiplierMovement * ZSensistivity), (-Y * MultiplierMovement));
+            LastKnownPosition = StartLocation + FVector((- X * XMovementSensitivity), (Z * ZMovementSensitivity), (-Y * YMovementSensitivity));
             CameraComponent->SetRelativeLocation(LastKnownPosition); // Sets new position in the world.
             
             // Option to remove rotation aspect of camera movement in UE.
             if (IncludeRotation)
             {
                 // New position of the camera after handling as FRotator, the standard format of rotation.
-                LastKnownRotation = StartDirection + FRotator(Y * MultiplierRotation, X * MultiplierRotation, 0.0f);
+                LastKnownRotation = StartDirection + FRotator(Y * YRotationSensitivity, X * XRotationSensitivity, 0.0f * ZRotationSensitivity);
                 CameraComponent->SetWorldRotation(LastKnownRotation); // Sets new rotation relative to parent.
             }
         } 
