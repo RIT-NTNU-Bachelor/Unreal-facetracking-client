@@ -40,9 +40,9 @@ public:
     // Todo
 
     // Start location modifiers in UE.
-    UPROPERTY(EditAnywhere, Category = "Tweaking")
+    UPROPERTY(EditAnywhere, Category = "Tweaking|Transform")
         FVector StartLocation;
-    UPROPERTY(EditAnywhere, Category = "Tweaking")
+    UPROPERTY(EditAnywhere, Category = "Tweaking|Transform")
         FRotator StartDirection;
 
     // Rotation modifier in UE.
@@ -50,30 +50,36 @@ public:
         bool IncludeRotation;                       // Include rotation estimation boolean.
 
     // Use smoothing or not when tracking head.
-    UPROPERTY(EditAnywhere, Category = "Tweaking")
+    UPROPERTY(EditAnywhere, Category = "Tweaking|Smoothing")
         bool UseSmoothing;                          // Include smoothing of movement boolean.
-    UPROPERTY(EditAnywhere, Category = "Tweaking")
+    UPROPERTY(EditAnywhere, Category = "Tweaking|Smoothing")
         int16 SmoothingBufferSize;                  // Set smoothing buffer size, higher equals smoother movement.
 
     // Z-axis modifiers.
     UPROPERTY(EditAnywhere, Category = "Tweaking")
         bool ZAxis;                                 // Include Z axis usage boolean.
-    UPROPERTY(EditAnywhere, Category = "Tweaking")
+    UPROPERTY(EditAnywhere, Category = "Tweaking|Movement")
         float ZMovementSensitivity;
 
     // Movement modifiers XY.
-    UPROPERTY(EditAnywhere, Category = "Tweaking")
+    UPROPERTY(EditAnywhere, Category = "Tweaking|Movement")
         float XMovementSensitivity;                   
-    UPROPERTY(EditAnywhere, Category = "Tweaking")
+    UPROPERTY(EditAnywhere, Category = "Tweaking|Movement")
         float YMovementSensitivity;
 
     // Rotation modifiers.
-    UPROPERTY(EditAnywhere, Category = "Tweaking")
+    UPROPERTY(EditAnywhere, Category = "Tweaking|Rotation")
         float XRotationSensitivity;                   // Rotation multiplier for X direction.
-    UPROPERTY(EditAnywhere, Category = "Tweaking")
+    UPROPERTY(EditAnywhere, Category = "Tweaking|Rotation")
         float YRotationSensitivity;                   // Rotation multiplier for Y direction.
-    UPROPERTY(EditAnywhere, Category = "Tweaking")
+    UPROPERTY(EditAnywhere, Category = "Tweaking|Rotation")
         float ZRotationSensitivity;                   // Not in use.
+
+    // FOV modifiers.
+    UPROPERTY(EditAnywhere, Category = "Tweaking|FOV")
+        bool FOVEnabled;
+    UPROPERTY(EditAnywhere, Category = "Tweaking|FOV")
+        float FOVSensitivity;
     
 private:
     // X and Y coordinate lists for average calculation.

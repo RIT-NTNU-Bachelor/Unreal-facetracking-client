@@ -14,6 +14,9 @@ AHeadTracking::AHeadTracking()
     UseSmoothing = true;
     ZAxis = true;
 
+    FOVEnabled = true;
+    FOVSensitivity = 3.0f;
+
     SmoothingBufferSize = 5;
 
     XMovementSensitivity = 1.0f;
@@ -140,6 +143,12 @@ void AHeadTracking::UpdateHeadPosition()
                 // New position of the camera after handling as FRotator, the standard format of rotation.
                 LastKnownRotation = StartDirection + FRotator(Y * YRotationSensitivity, X * XRotationSensitivity, 0.0f * ZRotationSensitivity);
                 CameraComponent->SetWorldRotation(LastKnownRotation); // Sets new rotation relative to parent.
+            }
+            // Option to include or remove fov.
+            if (ZAxis && FOVEnabled)
+            {
+                float ZFov = Z / FOVSensitivity;
+                CameraComponent->SetFieldOfView(90 - ZFov);
             }
         } 
     }
