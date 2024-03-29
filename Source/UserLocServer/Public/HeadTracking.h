@@ -36,23 +36,44 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Head Tracking")
     UCameraComponent* CameraComponent;
 
-    // Modifiers in UE.
+    // Preset modifier in UE.
+    // Todo
+
+    // Start location modifiers in UE.
     UPROPERTY(EditAnywhere, Category = "Tweaking")
         FVector StartLocation;
     UPROPERTY(EditAnywhere, Category = "Tweaking")
         FRotator StartDirection;
+
+    // Rotation modifier in UE.
     UPROPERTY(EditAnywhere, Category = "Tweaking")
         bool IncludeRotation;                       // Include rotation estimation boolean.
+
+    // Use smoothing or not when tracking head.
     UPROPERTY(EditAnywhere, Category = "Tweaking")
         bool UseSmoothing;                          // Include smoothing of movement boolean.
     UPROPERTY(EditAnywhere, Category = "Tweaking")
+        int16 SmoothingBufferSize;                  // Set smoothing buffer size, higher equals smoother movement.
+
+    // Z-axis modifiers.
+    UPROPERTY(EditAnywhere, Category = "Tweaking")
         bool ZAxis;                                 // Include Z axis usage boolean.
     UPROPERTY(EditAnywhere, Category = "Tweaking")
-        int16 SmoothingBufferSize;                  // Set smoothing buffer size, higher equals smoother movement.
+        float ZMovementSensitivity;
+
+    // Movement modifiers XY.
     UPROPERTY(EditAnywhere, Category = "Tweaking")
-        float MultiplierMovement;                   // Amount of movement multiplier.
+        float XMovementSensitivity;                   
     UPROPERTY(EditAnywhere, Category = "Tweaking")
-        float MultiplierRotation;                   // Rotation multiplier.
+        float YMovementSensitivity;
+
+    // Rotation modifiers.
+    UPROPERTY(EditAnywhere, Category = "Tweaking")
+        float XRotationSensitivity;                   // Rotation multiplier for X direction.
+    UPROPERTY(EditAnywhere, Category = "Tweaking")
+        float YRotationSensitivity;                   // Rotation multiplier for Y direction.
+    UPROPERTY(EditAnywhere, Category = "Tweaking")
+        float ZRotationSensitivity;                   // Not in use.
     
 private:
     // X and Y coordinate lists for average calculation.
