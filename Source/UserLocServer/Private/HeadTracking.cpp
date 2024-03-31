@@ -9,6 +9,8 @@ UHeadTracking::UHeadTracking()
     // Allows any parent to destroy the instance.
     bAllowAnyoneToDestroyMe = true;
 
+    CameraCentering = FVector(320.0f, 280.0f, 60.0f);
+
     // Create and attach the UDPReceiver component
     UDPReceiverComponent = CreateDefaultSubobject<UUDPReceiver>(TEXT("UDPReceiverComponent"));
 }
@@ -53,7 +55,7 @@ void UHeadTracking::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 /*
 * Updates head position based on the UDP component data.
 */
-bool UHeadTracking::UpdateHeadPosition(FVector& newLocation)
+void UHeadTracking::UpdateHeadPosition(FVector& newLocation)
 {
     FString Data = "";
 
@@ -61,7 +63,7 @@ bool UHeadTracking::UpdateHeadPosition(FVector& newLocation)
     {
         if (Data.IsEmpty())
         {
-            return false;
+            return;
         }
 
         // Assuming the data format is: '(X,Y)'. There is a b first, but not read in this context.
@@ -71,9 +73,9 @@ bool UHeadTracking::UpdateHeadPosition(FVector& newLocation)
         
         if (Points.Num() >= 2) // 2 or more points: x, y, may also include z.
         {
-            X = (FCString::Atof(*Points[0]) - 320.0f); // Parses X into float from FCString.
-            Y = (FCString::Atof(*Points[1]) - 280.0f); // Parses Y into float from FCString.
-            Z = (Points.Num() > 2 && ZAxis) ? (FCString::Atof(*Points[2]) - 60.0f) : 0.0f;
+            X = (FCString::Atof(*Points[0]) - CameraCentering.X); // Parses X into float from FCString.
+            Y = (FCString::Atof(*Points[1]) - CameraCentering.Y); // Parses Y into float from FCString.
+            Z = (Points.Num() > 2 && ZAxis) ? (FCString::Atof(*Points[2]) - CameraCentering.Z) : 0.0f;
 
             // Adds the data to a list to find average of X and Y. Smooths the movement.
             if (UseSmoothing)
@@ -91,10 +93,10 @@ bool UHeadTracking::UpdateHeadPosition(FVector& newLocation)
                 Z = ZAxis ? CalculateAverage(ZList) : Z;
             }
             newLocation = FVector(X, Y, Z);
-            return true;
+            UE_LOG(LogTemp, Warning, TEXT("X: %f, Y: %f, Z: %f"), newLocation.X, newLocation.Y, newLocation.Z);
+
         } 
     }
-    return false;
 }
 
 /*

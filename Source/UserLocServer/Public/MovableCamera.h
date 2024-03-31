@@ -19,7 +19,7 @@ public:
 	// Sets default values for this pawn's properties
 	AMovableCamera();
 	
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Head Tracking")
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Head Tracking (Server)")
         UHeadTracking* HeadTrackingComponent;
 
 	// Sets new property and Camera component. Necessary to use the custom head tracking C++ class.
@@ -38,45 +38,39 @@ public:
    // Todo
 
    // Start location modifiers in UE.
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Transform")
+    UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Transform")
         FVector StartLocation;
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Transform")
+    UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Transform")
         FRotator StartDirection;
 
     // Rotation modifier in UE.
-    UPROPERTY(EditAnywhere, Category = "Tweaking")
+    UPROPERTY(EditAnywhere, Category = "Camera Tweaking")
         bool IncludeRotation;                       // Include rotation estimation boolean.
 
-    // Use smoothing or not when tracking head.
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Smoothing")
-        bool UseSmoothing;                          // Include smoothing of movement boolean.
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Smoothing")
-        int16 SmoothingBufferSize;                  // Set smoothing buffer size, higher equals smoother movement.
-
     // Z-axis modifiers.
-    UPROPERTY(EditAnywhere, Category = "Tweaking")
+    UPROPERTY(EditAnywhere, Category = "Camera Tweaking")
         bool ZAxis;                                 // Include Z axis usage boolean.
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Movement")
+    UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Movement")
         float ZMovementSensitivity;
 
     // Movement modifiers XY.
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Movement")
+    UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Movement")
         float XMovementSensitivity;
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Movement")
+    UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Movement")
         float YMovementSensitivity;
 
     // Rotation modifiers.
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Rotation")
+    UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Rotation")
         float XRotationSensitivity;                   // Rotation multiplier for X direction.
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Rotation")
+    UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Rotation")
         float YRotationSensitivity;                   // Rotation multiplier for Y direction.
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Rotation")
+    UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Rotation")
         float ZRotationSensitivity;                   // Not in use.
 
     // FOV modifiers.
-    UPROPERTY(EditAnywhere, Category = "Tweaking|FOV")
+    UPROPERTY(EditAnywhere, Category = "Camera Tweaking|FOV")
         bool FOVEnabled;
-    UPROPERTY(EditAnywhere, Category = "Tweaking|FOV")
+    UPROPERTY(EditAnywhere, Category = "Camera Tweaking|FOV")
         float FOVSensitivity;
 
 private:

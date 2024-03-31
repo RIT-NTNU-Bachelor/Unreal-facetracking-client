@@ -33,25 +33,21 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Networking")
         UUDPReceiver* UDPReceiverComponent;
 
-    bool UpdateHeadPosition(FVector&);
+    void UpdateHeadPosition(FVector&);
 
     // Use smoothing or not when tracking head.
-    UPROPERTY(EditAnywhere, Category = "Head Tracking|Smoothing")
+    UPROPERTY(EditAnywhere, Category = "Head Tracking (Server)")
         bool UseSmoothing;                          // Include smoothing of movement boolean.
-    UPROPERTY(EditAnywhere, Category = "Head Tracking|Smoothing")
+    UPROPERTY(EditAnywhere, Category = "Head Tracking (Server)|Smoothing")
         int16 SmoothingBufferSize;                  // Set smoothing buffer size, higher equals smoother movement.
 
     // Z-axis modifiers.
-    UPROPERTY(EditAnywhere, Category = "Head Tracking")
-        bool ZAxis;                                 // Include Z axis usage boolean.
-    UPROPERTY(EditAnywhere, Category = "Head Tracking|Movement")
-        float ZMovementSensitivity;
+    UPROPERTY(EditAnywhere, Category = "Head Tracking (Server)")
+        bool ZAxis;
 
-    // Movement modifiers XY.
-    UPROPERTY(EditAnywhere, Category = "Head Tracking|Movement")
-        float XMovementSensitivity;                   
-    UPROPERTY(EditAnywhere, Category = "Head Tracking|Movement")
-        float YMovementSensitivity;
+    // Camera sender modifier.
+    UPROPERTY(EditAnywhere, Category = "Head Tracking (Server)")
+        FVector CameraCentering;
 
 private:
     // X and Y coordinate lists for average calculation.

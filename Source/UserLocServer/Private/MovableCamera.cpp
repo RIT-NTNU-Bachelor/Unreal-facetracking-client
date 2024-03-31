@@ -16,13 +16,10 @@ AMovableCamera::AMovableCamera()
     StartDirection = FRotator(0.0f, 0.0f, 0.0f);
 
     IncludeRotation = true;
-    UseSmoothing = true;
     ZAxis = true;
 
     FOVEnabled = true;
     FOVSensitivity = 3.0f;
-
-    SmoothingBufferSize = 5;
 
     XMovementSensitivity = 1.0f;
     YMovementSensitivity = 1.0f;
@@ -73,7 +70,6 @@ void AMovableCamera::UpdatePosition()
     float FOVmin = 50;
 
     HeadTrackingComponent->UpdateHeadPosition(newLocation);
-    UE_LOG(LogTemp, Warning, TEXT("X: %f, Y: %f, Z: %f"), newLocation.X, newLocation.Y, newLocation.Z);
 
     // New position of the camera after handling as FVector, the standard format of coordinates.
     LastKnownPosition = StartLocation + newLocation;
