@@ -80,5 +80,9 @@ public:
 private:
     FVector newLocation;
 
+    float X;
+    float Y;
+    float Z;
+
     void UpdatePosition();
 };

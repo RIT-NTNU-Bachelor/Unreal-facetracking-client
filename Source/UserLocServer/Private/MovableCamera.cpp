@@ -75,7 +75,10 @@ void AMovableCamera::UpdatePosition()
     // New position of the camera after handling as FVector, the standard format of coordinates.
     if (IncludeMovement)
     {
-        LastKnownPosition = StartLocation + newLocation;
+        X = newLocation.X * XMovementSensitivity;
+        Y = newLocation.Y * XMovementSensitivity;
+        Z = newLocation.Z * XMovementSensitivity;
+        LastKnownPosition = StartLocation + FVector(Y, X, Z);
         CameraComponent->SetRelativeLocation(LastKnownPosition); // Sets new position in the world.
     }
     
