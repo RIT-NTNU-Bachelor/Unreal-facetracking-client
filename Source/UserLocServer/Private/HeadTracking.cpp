@@ -93,7 +93,6 @@ void UHeadTracking::UpdateHeadPosition(FVector& newLocation)
                 Z = ZAxis ? CalculateAverage(ZList) : Z;
             }
             newLocation = FVector(X, Y, Z);
-            // UE_LOG(LogTemp, Warning, TEXT("X: %f, Y: %f, Z: %f"), newLocation.X, newLocation.Y, newLocation.Z);
         } 
     }
 }

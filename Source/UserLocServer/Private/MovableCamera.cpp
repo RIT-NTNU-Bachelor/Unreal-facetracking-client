@@ -67,8 +67,10 @@ void AMovableCamera::UpdatePosition()
 {
     FVector LastKnownPosition = StartLocation;
     FRotator LastKnownRotation = StartDirection;
-    float FOVmax = 110;
+    float FOVmax = 120;
     float FOVmin = 50;
+    float ZFov;
+    float ZLimit = 250.0f;
 
     HeadTrackingComponent->UpdateHeadPosition(newLocation);
 
@@ -76,10 +78,13 @@ void AMovableCamera::UpdatePosition()
     if (IncludeMovement)
     {
         X = newLocation.X * XMovementSensitivity;
-        Y = newLocation.Y * XMovementSensitivity;
-        Z = newLocation.Z * XMovementSensitivity;
-        LastKnownPosition = StartLocation + FVector(Y, X, Z);
+        Y = newLocation.Y * YMovementSensitivity;
+        Z = newLocation.Z * ZMovementSensitivity;
+        if (Z < 0 && abs(Z) > ZLimit) Z = -ZLimit;
+        
+        LastKnownPosition = StartLocation + FVector(Z, X, Y);
         CameraComponent->SetRelativeLocation(LastKnownPosition); // Sets new position in the world.
+        UE_LOG(LogTemp, Warning, TEXT("X: %f, Y: %f, Z: %f"), X, Y, Z);
     }
     
     // Option to remove rotation aspect of camera movement in UE.
@@ -93,7 +98,7 @@ void AMovableCamera::UpdatePosition()
     // Option to include or remove fov.
     if (ZAxis && FOVEnabled)
     {
-        float ZFov = (newLocation.Z / FOVSensitivity) + 60.0f;
+        ZFov = abs((-newLocation.Z / FOVSensitivity) + 80.0f);
 
         if (ZFov < FOVmin)
         {
@@ -104,5 +109,6 @@ void AMovableCamera::UpdatePosition()
             ZFov = FOVmax;
         }
         CameraComponent->SetFieldOfView(ZFov);
+        UE_LOG(LogTemp, Warning, TEXT("FOV: %f"), ZFov);
     }
 }
