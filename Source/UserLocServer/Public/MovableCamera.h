@@ -80,5 +80,7 @@ public:
         float FOVSensitivity;
 
 private:
+    FVector newLocation;
+
     void UpdatePosition();
 };

@@ -7,10 +7,9 @@ AMovableCamera::AMovableCamera()
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
-
     HeadTrackingComponent = CreateDefaultSubobject<UHeadTracking>(TEXT("HeadTrackingComponent"));
 
+	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	RootComponent = CameraComponent;
 
     StartLocation = FVector(0.0f, 0.0f, 0.0f);
@@ -32,6 +31,8 @@ AMovableCamera::AMovableCamera()
     XRotationSensitivity = 0.1f;
     YRotationSensitivity = 0.1f;
     ZRotationSensitivity = 0.0f;
+
+    newLocation = FVector();
 }
 
 // Called when the game starts or when spawned
@@ -71,9 +72,8 @@ void AMovableCamera::UpdatePosition()
     float FOVmax = 110;
     float FOVmin = 50;
 
-    FVector newLocation = FVector(0.0f, 0.0f, 0.0f);
-
     HeadTrackingComponent->UpdateHeadPosition(newLocation);
+    UE_LOG(LogTemp, Warning, TEXT("X: %f, Y: %f, Z: %f"), newLocation.X, newLocation.Y, newLocation.Z);
 
     // New position of the camera after handling as FVector, the standard format of coordinates.
     LastKnownPosition = StartLocation + newLocation;

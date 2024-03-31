@@ -46,7 +46,7 @@ bool UHeadTracking::StartHeadTracking()
 */
 void UHeadTracking::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-    FVector newLocation;
+    FVector newLocation = FVector();
     UpdateHeadPosition(newLocation);
 }
 
@@ -65,9 +65,7 @@ bool UHeadTracking::UpdateHeadPosition(FVector& newLocation)
         }
 
         // Assuming the data format is: '(X,Y)'. There is a b first, but not read in this context.
-        Data = Data.RightChop(1);   // Removes '(
-        Data = Data.LeftChop(1);    // Removes )'
-
+        Data = Data.RightChop(1).LeftChop(1);    // Removes '( )'
         TArray<FString> Points;
         Data.ParseIntoArray(Points, TEXT(","), true);
         
@@ -75,7 +73,7 @@ bool UHeadTracking::UpdateHeadPosition(FVector& newLocation)
         {
             X = (FCString::Atof(*Points[0]) - 320.0f); // Parses X into float from FCString.
             Y = (FCString::Atof(*Points[1]) - 280.0f); // Parses Y into float from FCString.
-            if (ZAxis) Z = (FCString::Atof(*Points[2]) - 60.0f); // Parses Z into float from FCString.
+            Z = (Points.Num() > 2 && ZAxis) ? (FCString::Atof(*Points[2]) - 60.0f) : 0.0f;
 
             // Adds the data to a list to find average of X and Y. Smooths the movement.
             if (UseSmoothing)
@@ -90,10 +88,9 @@ bool UHeadTracking::UpdateHeadPosition(FVector& newLocation)
 
                 X = CalculateAverage(XList);
                 Y = CalculateAverage(YList);
-                if (ZAxis) Z = CalculateAverage(ZList);
-
-                newLocation = FVector(X, Y, Z);
+                Z = ZAxis ? CalculateAverage(ZList) : Z;
             }
+            newLocation = FVector(X, Y, Z);
             return true;
         } 
     }
@@ -105,15 +102,8 @@ bool UHeadTracking::UpdateHeadPosition(FVector& newLocation)
 */
 float UHeadTracking::CalculateAverage(const TArray<float>& Values)
 {
-    if (Values.Num() == 0)
-    {
-        return 0.0f;
-    }
-
+    if (Values.IsEmpty()) return 0.0f;
     float Sum = 0.0f;
-    for (float Val : Values)
-    {
-        Sum += Val;
-    }
+    for (float Val : Values) Sum += Val;
     return Sum / Values.Num();
 }

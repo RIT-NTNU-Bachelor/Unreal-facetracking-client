@@ -21,7 +21,7 @@ public:
     UHeadTracking();
 
 protected:
-    
+
 public:
     // Called when the game starts or when spawned
     bool StartHeadTracking();
@@ -31,9 +31,9 @@ public:
 
     // Sets new property and UDP receiver component. Necessary to use the custom UDPReceiver component.
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Networking")
-    UUDPReceiver* UDPReceiverComponent;
+        UUDPReceiver* UDPReceiverComponent;
 
-    bool UpdateHeadPosition(FVector& newLocation);
+    bool UpdateHeadPosition(FVector&);
 
     // Use smoothing or not when tracking head.
     UPROPERTY(EditAnywhere, Category = "Head Tracking|Smoothing")
@@ -52,13 +52,13 @@ public:
         float XMovementSensitivity;                   
     UPROPERTY(EditAnywhere, Category = "Head Tracking|Movement")
         float YMovementSensitivity;
-    
+
 private:
     // X and Y coordinate lists for average calculation.
     float X;
     float Y;
     float Z;
-    
+   
     TArray<float> XList;
     TArray<float> YList;
     TArray<float> ZList;
