@@ -81,6 +81,16 @@ public:
     UPROPERTY(EditAnywhere, Category = "Tweaking|FOV")
         float FOVSensitivity;
     
+    // World skewing modifiers
+    UPROPERTY(EditAnywhere, Category = "Tweaking")
+        bool WorldSkewing;
+    UPROPERTY(EditAnywhere, Category = "Tweaking|WorldSkewing")
+        float SkewingSensitivityX;
+    UPROPERTY(EditAnywhere, Category = "Tweaking|WorldSkewing")
+        float SkewingSensitivityY;
+    UPROPERTY(EditAnywhere, Category = "Tweaking|WorldSkewing")
+        float SkewingSensitivityZ;
+
 private:
     // X and Y coordinate lists for average calculation.
     float X;

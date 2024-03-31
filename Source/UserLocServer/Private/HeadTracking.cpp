@@ -96,8 +96,8 @@ void AHeadTracking::UpdateHeadPosition()
     FString Data = "";
     FVector LastKnownPosition = StartLocation;
     FRotator LastKnownRotation = StartDirection;
-    float FOVmax = 120;
-    float FOVmin = 85;
+    float FOVmax = 110;
+    float FOVmin = 50;
 
     if (UDPReceiverComponent->ReceiveUDPData(Data))
     {
@@ -146,10 +146,11 @@ void AHeadTracking::UpdateHeadPosition()
                 LastKnownRotation = StartDirection + FRotator(Y * YRotationSensitivity, X * XRotationSensitivity, 0.0f * ZRotationSensitivity);
                 CameraComponent->SetWorldRotation(LastKnownRotation); // Sets new rotation relative to parent.
             }
+
             // Option to include or remove fov.
             if (ZAxis && FOVEnabled)
             {
-                float ZFov = (Z / FOVSensitivity) + 90.0f;
+                float ZFov = (Z / FOVSensitivity) + 60.0f;
 
                 if (ZFov < FOVmin)
                 {
