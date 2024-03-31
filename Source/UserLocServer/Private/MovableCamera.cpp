@@ -79,7 +79,7 @@ void AMovableCamera::UpdatePosition()
     if (IncludeRotation)
     {
         // New position of the camera after handling as FRotator, the standard format of rotation.
-        LastKnownRotation = StartDirection + FRotator(newLocation.Y * YRotationSensitivity, newLocation.X * XRotationSensitivity, newLocation.Z * ZRotationSensitivity);
+        LastKnownRotation = StartDirection + FRotator(newLocation.X * XRotationSensitivity, newLocation.Y * YRotationSensitivity, newLocation.Z * ZRotationSensitivity);
         CameraComponent->SetWorldRotation(LastKnownRotation); // Sets new rotation relative to parent.
     }
 
