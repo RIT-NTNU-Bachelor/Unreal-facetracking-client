@@ -12,85 +12,47 @@
 #include "HeadTracking.generated.h"
 
 UCLASS()
-class USERLOCSERVER_API AHeadTracking : public APawn
+class USERLOCSERVER_API UHeadTracking : public UActorComponent
 {
     GENERATED_BODY()
 
 public:
     // Sets default values for this actor's properties
-    AHeadTracking();
+    UHeadTracking();
 
 protected:
-    // Called when the game starts or when spawned
-    void BeginPlay() override;
-
+    
 public:
+    // Called when the game starts or when spawned
+    bool StartHeadTracking();
+
     // Called every frame
-    void Tick(float DeltaTime) override;
+    void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
     // Sets new property and UDP receiver component. Necessary to use the custom UDPReceiver component.
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Networking")
     UUDPReceiver* UDPReceiverComponent;
 
-    // Sets new property and Camera component. Necessary to use the custom head tracking C++ class.
-    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Head Tracking")
-    UCameraComponent* CameraComponent;
-
-    // Preset modifier in UE.
-    // Todo
-
-    // Start location modifiers in UE.
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Transform")
-        FVector StartLocation;
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Transform")
-        FRotator StartDirection;
-
-    // Rotation modifier in UE.
-    UPROPERTY(EditAnywhere, Category = "Tweaking")
-        bool IncludeRotation;                       // Include rotation estimation boolean.
+    bool UpdateHeadPosition(FVector& newLocation);
 
     // Use smoothing or not when tracking head.
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Smoothing")
+    UPROPERTY(EditAnywhere, Category = "Head Tracking|Smoothing")
         bool UseSmoothing;                          // Include smoothing of movement boolean.
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Smoothing")
+    UPROPERTY(EditAnywhere, Category = "Head Tracking|Smoothing")
         int16 SmoothingBufferSize;                  // Set smoothing buffer size, higher equals smoother movement.
 
     // Z-axis modifiers.
-    UPROPERTY(EditAnywhere, Category = "Tweaking")
+    UPROPERTY(EditAnywhere, Category = "Head Tracking")
         bool ZAxis;                                 // Include Z axis usage boolean.
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Movement")
+    UPROPERTY(EditAnywhere, Category = "Head Tracking|Movement")
         float ZMovementSensitivity;
 
     // Movement modifiers XY.
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Movement")
+    UPROPERTY(EditAnywhere, Category = "Head Tracking|Movement")
         float XMovementSensitivity;                   
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Movement")
+    UPROPERTY(EditAnywhere, Category = "Head Tracking|Movement")
         float YMovementSensitivity;
-
-    // Rotation modifiers.
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Rotation")
-        float XRotationSensitivity;                   // Rotation multiplier for X direction.
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Rotation")
-        float YRotationSensitivity;                   // Rotation multiplier for Y direction.
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Rotation")
-        float ZRotationSensitivity;                   // Not in use.
-
-    // FOV modifiers.
-    UPROPERTY(EditAnywhere, Category = "Tweaking|FOV")
-        bool FOVEnabled;
-    UPROPERTY(EditAnywhere, Category = "Tweaking|FOV")
-        float FOVSensitivity;
     
-    // World skewing modifiers
-    UPROPERTY(EditAnywhere, Category = "Tweaking")
-        bool WorldSkewing;
-    UPROPERTY(EditAnywhere, Category = "Tweaking|WorldSkewing")
-        float SkewingSensitivityX;
-    UPROPERTY(EditAnywhere, Category = "Tweaking|WorldSkewing")
-        float SkewingSensitivityY;
-    UPROPERTY(EditAnywhere, Category = "Tweaking|WorldSkewing")
-        float SkewingSensitivityZ;
-
 private:
     // X and Y coordinate lists for average calculation.
     float X;
@@ -102,6 +64,5 @@ private:
     TArray<float> ZList;
 
     // Private functions.
-    void UpdateHeadPosition();
     float CalculateAverage(const TArray<float>& Values);
 };
