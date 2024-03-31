@@ -7,15 +7,25 @@ AHeadTracking::AHeadTracking()
     // Set this actor to call Tick() every frame.
     PrimaryActorTick.bCanEverTick = true;
 
-    //StartLocation = FVector(0.0f, 0.0f, 0.0f);
-    //StartDirection = FRotator(0.0f, 0.0f, 0.0f);
+    StartLocation = FVector(0.0f, 0.0f, 0.0f);
+    StartDirection = FRotator(0.0f, 0.0f, 0.0f);
 
     IncludeRotation = true;
     UseSmoothing = true;
-    ZAxis = false;
-    SmoothingBufferSize = 10;
-    MultiplierMovement = 1.0f;
-    MultiplierRotation = 0.1f;
+    ZAxis = true;
+
+    FOVEnabled = true;
+    FOVSensitivity = 3.0f;
+
+    SmoothingBufferSize = 5;
+
+    XMovementSensitivity = 1.0f;
+    YMovementSensitivity = 1.0f;
+    ZMovementSensitivity = 1.0f;
+
+    XRotationSensitivity = 0.1f;
+    YRotationSensitivity = 0.1f;
+    ZRotationSensitivity = 0.0f;
 
     // Create and attach the UDPReceiver component
     UDPReceiverComponent = CreateDefaultSubobject<UUDPReceiver>(TEXT("UDPReceiverComponent"));
@@ -86,6 +96,8 @@ void AHeadTracking::UpdateHeadPosition()
     FString Data = "";
     FVector LastKnownPosition = StartLocation;
     FRotator LastKnownRotation = StartDirection;
+    float FOVmax = 120;
+    float FOVmin = 85;
 
     if (UDPReceiverComponent->ReceiveUDPData(Data))
     {
@@ -124,15 +136,30 @@ void AHeadTracking::UpdateHeadPosition()
             }
             
             // New position of the camera after handling as FVector, the standard format of coordinates.
-            LastKnownPosition = FVector(StartLocation.Z + (-Z * MultiplierMovement * 2), StartLocation.X + (- X * MultiplierMovement), StartLocation.Y + (-Y * MultiplierMovement));
+            LastKnownPosition = StartLocation + FVector((- X * XMovementSensitivity), (Z * ZMovementSensitivity), (-Y * YMovementSensitivity));
             CameraComponent->SetRelativeLocation(LastKnownPosition); // Sets new position in the world.
             
             // Option to remove rotation aspect of camera movement in UE.
             if (IncludeRotation)
             {
                 // New position of the camera after handling as FRotator, the standard format of rotation.
-                LastKnownRotation = FRotator(Y * MultiplierRotation, X * MultiplierRotation, 0.0f);
+                LastKnownRotation = StartDirection + FRotator(Y * YRotationSensitivity, X * XRotationSensitivity, 0.0f * ZRotationSensitivity);
                 CameraComponent->SetWorldRotation(LastKnownRotation); // Sets new rotation relative to parent.
+            }
+            // Option to include or remove fov.
+            if (ZAxis && FOVEnabled)
+            {
+                float ZFov = (Z / FOVSensitivity) + 90.0f;
+
+                if (ZFov < FOVmin)
+                {
+                    ZFov = FOVmin;
+                }
+                else if (ZFov > FOVmax)
+                {
+                    ZFov = FOVmax;
+                }
+                CameraComponent->SetFieldOfView(ZFov);
             }
         } 
     }
