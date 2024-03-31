@@ -12,86 +12,53 @@
 #include "HeadTracking.generated.h"
 
 UCLASS()
-class USERLOCSERVER_API AHeadTracking : public APawn
+class USERLOCSERVER_API UHeadTracking : public UActorComponent
 {
     GENERATED_BODY()
 
 public:
     // Sets default values for this actor's properties
-    AHeadTracking();
+    UHeadTracking();
 
 protected:
-    // Called when the game starts or when spawned
-    void BeginPlay() override;
 
 public:
+    // Called when the game starts or when spawned
+    bool StartHeadTracking();
+
     // Called every frame
-    void Tick(float DeltaTime) override;
+    void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
     // Sets new property and UDP receiver component. Necessary to use the custom UDPReceiver component.
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Networking")
-    UUDPReceiver* UDPReceiverComponent;
+        UUDPReceiver* UDPReceiverComponent;
 
-    // Sets new property and Camera component. Necessary to use the custom head tracking C++ class.
-    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Head Tracking")
-    UCameraComponent* CameraComponent;
-
-    // Preset modifier in UE.
-    // Todo
-
-    // Start location modifiers in UE.
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Transform")
-        FVector StartLocation;
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Transform")
-        FRotator StartDirection;
-
-    // Rotation modifier in UE.
-    UPROPERTY(EditAnywhere, Category = "Tweaking")
-        bool IncludeRotation;                       // Include rotation estimation boolean.
+    void UpdateHeadPosition(FVector&);
 
     // Use smoothing or not when tracking head.
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Smoothing")
+    UPROPERTY(EditAnywhere, Category = "Head Tracking (Server)")
         bool UseSmoothing;                          // Include smoothing of movement boolean.
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Smoothing")
+    UPROPERTY(EditAnywhere, Category = "Head Tracking (Server)|Smoothing")
         int16 SmoothingBufferSize;                  // Set smoothing buffer size, higher equals smoother movement.
 
     // Z-axis modifiers.
-    UPROPERTY(EditAnywhere, Category = "Tweaking")
-        bool ZAxis;                                 // Include Z axis usage boolean.
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Movement")
-        float ZMovementSensitivity;
+    UPROPERTY(EditAnywhere, Category = "Head Tracking (Server)")
+        bool ZAxis;
 
-    // Movement modifiers XY.
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Movement")
-        float XMovementSensitivity;                   
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Movement")
-        float YMovementSensitivity;
+    // Camera sender modifier.
+    UPROPERTY(EditAnywhere, Category = "Head Tracking (Server)")
+        FVector CameraCentering;
 
-    // Rotation modifiers.
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Rotation")
-        float XRotationSensitivity;                   // Rotation multiplier for X direction.
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Rotation")
-        float YRotationSensitivity;                   // Rotation multiplier for Y direction.
-    UPROPERTY(EditAnywhere, Category = "Tweaking|Rotation")
-        float ZRotationSensitivity;                   // Not in use.
-
-    // FOV modifiers.
-    UPROPERTY(EditAnywhere, Category = "Tweaking|FOV")
-        bool FOVEnabled;
-    UPROPERTY(EditAnywhere, Category = "Tweaking|FOV")
-        float FOVSensitivity;
-    
 private:
     // X and Y coordinate lists for average calculation.
     float X;
     float Y;
     float Z;
-    
+   
     TArray<float> XList;
     TArray<float> YList;
     TArray<float> ZList;
 
     // Private functions.
-    void UpdateHeadPosition();
     float CalculateAverage(const TArray<float>& Values);
 };

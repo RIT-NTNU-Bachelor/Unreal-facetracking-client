@@ -2,46 +2,24 @@
 
 #include "HeadTracking.h"
 
-AHeadTracking::AHeadTracking()
+UHeadTracking::UHeadTracking()
 {
-    // Set this actor to call Tick() every frame.
-    PrimaryActorTick.bCanEverTick = true;
+    // Sets it to be able to tick with world and actor.
+    PrimaryComponentTick.bCanEverTick = true;
+    // Allows any parent to destroy the instance.
+    bAllowAnyoneToDestroyMe = true;
 
-    StartLocation = FVector(0.0f, 0.0f, 0.0f);
-    StartDirection = FRotator(0.0f, 0.0f, 0.0f);
-
-    IncludeRotation = true;
-    UseSmoothing = true;
-    ZAxis = true;
-
-    FOVEnabled = true;
-    FOVSensitivity = 3.0f;
-
-    SmoothingBufferSize = 5;
-
-    XMovementSensitivity = 1.0f;
-    YMovementSensitivity = 1.0f;
-    ZMovementSensitivity = 1.0f;
-
-    XRotationSensitivity = 0.1f;
-    YRotationSensitivity = 0.1f;
-    ZRotationSensitivity = 0.0f;
+    CameraCentering = FVector(320.0f, 280.0f, 60.0f);
 
     // Create and attach the UDPReceiver component
     UDPReceiverComponent = CreateDefaultSubobject<UUDPReceiver>(TEXT("UDPReceiverComponent"));
-
-    // Create and setup the camera component as a subcomponent.
-    CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
-    RootComponent = CameraComponent;
 }
 
 /*
 * Runs when the game plays.
 */
-void AHeadTracking::BeginPlay()
+bool UHeadTracking::StartHeadTracking()
 {
-    Super::BeginPlay();
-
     FString socketName = "localhost";   // Not necessary to change.
     FString TheIP = "127.0.0.1";        // Change this to your server's IP address.
     int32 ThePort = 5052;               // Change this to your server's port.
@@ -54,50 +32,32 @@ void AHeadTracking::BeginPlay()
         if (bStarted)
         {
             UE_LOG(LogTemp, Log, TEXT("UDP Receiver started successfully."));
+            return true;
         }
         else
         {
             UE_LOG(LogTemp, Warning, TEXT("Failed to start UDP Receiver."));
         }
     }
-
-    APlayerController* PlayerController = GetWorld()->GetFirstPlayerController(); // Retrieves the FP controller.
-    // If FP controller is found, set new actor location and rotation.
-    if (PlayerController) 
-    {
-        APawn* CurrentPawn = PlayerController->GetPawn();
-
-        // Check if the current pawn is not null and is of type AHeadTracking
-        AHeadTracking* HeadTrackingPawn = Cast<AHeadTracking>(CurrentPawn);
-        if (HeadTrackingPawn != nullptr)
-        {
-            // If it's already a HeadTrackingPawn, just move it to the standard location and rotation
-            HeadTrackingPawn->SetActorLocation(StartLocation);
-            HeadTrackingPawn->SetActorRotation(StartDirection);
-        }
-    }
+    return false;
 }
 
 /*
 * Every tick in the game, this function will be run.
 * It updated the head position using the method: UpdateHeadPosition.
 */
-void AHeadTracking::Tick(float DeltaTime)
+void UHeadTracking::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-    Super::Tick(DeltaTime);
-    UpdateHeadPosition();
+    FVector newLocation = FVector();
+    UpdateHeadPosition(newLocation);
 }
 
 /*
 * Updates head position based on the UDP component data.
 */
-void AHeadTracking::UpdateHeadPosition()
+void UHeadTracking::UpdateHeadPosition(FVector& newLocation)
 {
     FString Data = "";
-    FVector LastKnownPosition = StartLocation;
-    FRotator LastKnownRotation = StartDirection;
-    float FOVmax = 120;
-    float FOVmin = 85;
 
     if (UDPReceiverComponent->ReceiveUDPData(Data))
     {
@@ -107,17 +67,15 @@ void AHeadTracking::UpdateHeadPosition()
         }
 
         // Assuming the data format is: '(X,Y)'. There is a b first, but not read in this context.
-        Data = Data.RightChop(1);   // Removes '(
-        Data = Data.LeftChop(1);    // Removes )'
-
+        Data = Data.RightChop(1).LeftChop(1);    // Removes '( )'
         TArray<FString> Points;
         Data.ParseIntoArray(Points, TEXT(","), true);
         
         if (Points.Num() >= 2) // 2 or more points: x, y, may also include z.
         {
-            X = (FCString::Atof(*Points[0]) - 320.0f); // Parses X into float from FCString.
-            Y = (FCString::Atof(*Points[1]) - 280.0f); // Parses Y into float from FCString.
-            if (ZAxis) Z = (FCString::Atof(*Points[2]) - 60.0f); // Parses Z into float from FCString.
+            X = (FCString::Atof(*Points[0]) - CameraCentering.X); // Parses X into float from FCString.
+            Y = (FCString::Atof(*Points[1]) - CameraCentering.Y); // Parses Y into float from FCString.
+            Z = (Points.Num() > 2 && ZAxis) ? (FCString::Atof(*Points[2]) - CameraCentering.Z) : 0.0f;
 
             // Adds the data to a list to find average of X and Y. Smooths the movement.
             if (UseSmoothing)
@@ -132,35 +90,10 @@ void AHeadTracking::UpdateHeadPosition()
 
                 X = CalculateAverage(XList);
                 Y = CalculateAverage(YList);
-                if (ZAxis) Z = CalculateAverage(ZList);
+                Z = ZAxis ? CalculateAverage(ZList) : Z;
             }
-            
-            // New position of the camera after handling as FVector, the standard format of coordinates.
-            LastKnownPosition = StartLocation + FVector((- X * XMovementSensitivity), (Z * ZMovementSensitivity), (-Y * YMovementSensitivity));
-            CameraComponent->SetRelativeLocation(LastKnownPosition); // Sets new position in the world.
-            
-            // Option to remove rotation aspect of camera movement in UE.
-            if (IncludeRotation)
-            {
-                // New position of the camera after handling as FRotator, the standard format of rotation.
-                LastKnownRotation = StartDirection + FRotator(Y * YRotationSensitivity, X * XRotationSensitivity, 0.0f * ZRotationSensitivity);
-                CameraComponent->SetWorldRotation(LastKnownRotation); // Sets new rotation relative to parent.
-            }
-            // Option to include or remove fov.
-            if (ZAxis && FOVEnabled)
-            {
-                float ZFov = (Z / FOVSensitivity) + 90.0f;
-
-                if (ZFov < FOVmin)
-                {
-                    ZFov = FOVmin;
-                }
-                else if (ZFov > FOVmax)
-                {
-                    ZFov = FOVmax;
-                }
-                CameraComponent->SetFieldOfView(ZFov);
-            }
+            newLocation = FVector(X, Y, Z);
+            // UE_LOG(LogTemp, Warning, TEXT("X: %f, Y: %f, Z: %f"), newLocation.X, newLocation.Y, newLocation.Z);
         } 
     }
 }
@@ -168,17 +101,10 @@ void AHeadTracking::UpdateHeadPosition()
 /*
 * Simple average calculation.
 */
-float AHeadTracking::CalculateAverage(const TArray<float>& Values)
+float UHeadTracking::CalculateAverage(const TArray<float>& Values)
 {
-    if (Values.Num() == 0)
-    {
-        return 0.0f;
-    }
-
+    if (Values.IsEmpty()) return 0.0f;
     float Sum = 0.0f;
-    for (float Val : Values)
-    {
-        Sum += Val;
-    }
+    for (float Val : Values) Sum += Val;
     return Sum / Values.Num();
 }
