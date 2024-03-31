@@ -69,6 +69,7 @@ void AMovableCamera::UpdatePosition()
     FRotator LastKnownRotation = StartDirection;
     float FOVmax = 110;
     float FOVmin = 50;
+    float ZFov;
 
     HeadTrackingComponent->UpdateHeadPosition(newLocation);
 
@@ -93,7 +94,7 @@ void AMovableCamera::UpdatePosition()
     // Option to include or remove fov.
     if (ZAxis && FOVEnabled)
     {
-        float ZFov = (newLocation.Z / FOVSensitivity) + 60.0f;
+        ZFov = (-newLocation.Z / FOVSensitivity) + 90.0f;
 
         if (ZFov < FOVmin)
         {
