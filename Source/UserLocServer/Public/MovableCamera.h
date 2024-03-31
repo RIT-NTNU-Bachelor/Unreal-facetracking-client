@@ -47,17 +47,21 @@ public:
     UPROPERTY(EditAnywhere, Category = "Camera Tweaking")
         bool IncludeRotation;                       // Include rotation estimation boolean.
 
-    // Z-axis modifiers.
+    // Rotation modifier in UE.
+    UPROPERTY(EditAnywhere, Category = "Camera Tweaking")
+        bool IncludeMovement;                       // Include rotation estimation boolean.
+
+    // Z-axis modifier.
     UPROPERTY(EditAnywhere, Category = "Camera Tweaking")
         bool ZAxis;                                 // Include Z axis usage boolean.
-    UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Movement")
-        float ZMovementSensitivity;
-
-    // Movement modifiers XY.
+    
+    // Movement modifiers XYZ.
     UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Movement")
         float XMovementSensitivity;
     UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Movement")
         float YMovementSensitivity;
+    UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Movement")
+        float ZMovementSensitivity;
 
     // Rotation modifiers.
     UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Rotation")

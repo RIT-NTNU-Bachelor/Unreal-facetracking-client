@@ -16,6 +16,7 @@ AMovableCamera::AMovableCamera()
     StartDirection = FRotator(0.0f, 0.0f, 0.0f);
 
     IncludeRotation = true;
+    IncludeMovement = true;
     ZAxis = true;
 
     FOVEnabled = true;
@@ -72,14 +73,17 @@ void AMovableCamera::UpdatePosition()
     HeadTrackingComponent->UpdateHeadPosition(newLocation);
 
     // New position of the camera after handling as FVector, the standard format of coordinates.
-    LastKnownPosition = StartLocation + newLocation;
-    CameraComponent->SetRelativeLocation(LastKnownPosition); // Sets new position in the world.
-
+    if (IncludeMovement)
+    {
+        LastKnownPosition = StartLocation + newLocation;
+        CameraComponent->SetRelativeLocation(LastKnownPosition); // Sets new position in the world.
+    }
+    
     // Option to remove rotation aspect of camera movement in UE.
     if (IncludeRotation)
     {
         // New position of the camera after handling as FRotator, the standard format of rotation.
-        LastKnownRotation = StartDirection + FRotator(newLocation.X * XRotationSensitivity, newLocation.Y * YRotationSensitivity, newLocation.Z * ZRotationSensitivity);
+        LastKnownRotation = StartDirection + FRotator(newLocation.Y * YRotationSensitivity, newLocation.X * XRotationSensitivity, newLocation.Z * ZRotationSensitivity);
         CameraComponent->SetWorldRotation(LastKnownRotation); // Sets new rotation relative to parent.
     }
 
