@@ -96,6 +96,8 @@ void AHeadTracking::UpdateHeadPosition()
     FString Data = "";
     FVector LastKnownPosition = StartLocation;
     FRotator LastKnownRotation = StartDirection;
+    float FOVmax = 180;
+    float FOVmin = 60;
 
     if (UDPReceiverComponent->ReceiveUDPData(Data))
     {
@@ -147,7 +149,16 @@ void AHeadTracking::UpdateHeadPosition()
             // Option to include or remove fov.
             if (ZAxis && FOVEnabled)
             {
-                float ZFov = Z / FOVSensitivity;
+                float ZFov = (Z / FOVSensitivity);
+
+                if ((Z + 60.0f) < FOVmin)
+                {
+                    ZFov = FOVmin;
+                }
+                else if ((Z + 60.0f) > FOVmax)
+                {
+                    ZFov = FOVmax;
+                }
                 CameraComponent->SetFieldOfView(90 - ZFov);
             }
         } 
