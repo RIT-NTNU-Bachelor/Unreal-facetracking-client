@@ -17,7 +17,6 @@ AMovableCamera::AMovableCamera()
 
     IncludeRotation = true;
     IncludeMovement = true;
-    ZAxis = true;
 
     FOVEnabled = true;
     FOVSensitivity = 3.0f;
@@ -96,7 +95,7 @@ void AMovableCamera::UpdatePosition()
     }
 
     // Option to include or remove fov.
-    if (ZAxis && FOVEnabled)
+    if (HeadTrackingComponent->ZAxis && FOVEnabled)
     {
         ZFov = abs((-newLocation.Z / FOVSensitivity) + 80.0f);
 

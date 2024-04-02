@@ -50,10 +50,6 @@ public:
     // Rotation modifier in UE.
     UPROPERTY(EditAnywhere, Category = "Camera Tweaking")
         bool IncludeMovement;                       // Include rotation estimation boolean.
-
-    // Z-axis modifier.
-    UPROPERTY(EditAnywhere, Category = "Camera Tweaking")
-        bool ZAxis;                                 // Include Z axis usage boolean.
     
     // Movement modifiers XYZ.
     UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Movement")
