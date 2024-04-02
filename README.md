@@ -8,7 +8,7 @@
     <a href="https://www.unrealengine.com/en-US/blog/unreal-engine-5-2-is-now-available">
         <img alt="click" src="https://img.shields.io/badge/UE%20Version-5.2.1-blue" />
     </a>
-</div>
+</div> <br />
 
 An Unreal Engine 5 project which utilizes coordinate data sent by a local server to change a virtual camera in a virtual environment.
 Requires a local server sending coordinate data in the encoded string format: 'X, Y, Z'
@@ -32,6 +32,12 @@ Unreal Engine was utilized to acheive this effect as it has existing features ne
 > This repository uses Git LFS for the .umap and .uasset files.
 
 ### Table of Contents
+
+**[Requirements](#Requirements)**<br>
+**[Installation](#Installation)**<br>
+**[Usage](#Usage)**<br>
+**[Credits](#Credits)**<br>
+**[License](#License)**<br>
 
 ## Requirements
 
@@ -67,14 +73,14 @@ To open and build the project you may do it in two ways:
 
 1. Press "Generate Visual Studio project files.
 2. Press "Open"
-   ![alt text](Screenshot_Filesystem.png)
+   ![Files in project](readme-assets/project_files_rclick_ue.png)
    This will launch the editor and allow you to start working and using the project.
 
 - Launch using Visual Studio.
 
 1. Open the project file: UserLocServer.sln, in Visual Studio 2022.
 2. Press "Run".
-   ![Image of VS2022 Run button](image.png)
+   ![Image of VS2022 Run button](readme-assets/visual_studio_play.png)
    This opens up the UE editor and allow you to start working and using the project.
 
 - Alternative: "Launch Game"
@@ -83,18 +89,32 @@ To open and build the project you may do it in two ways:
 ## Usage
 
 To use the project as intended, run a server as mentioned in Requirements. Press: Run, or keybind: "Alt-P", to run the project. If a server is sending the correct data, the camera in the scene will move corresponding to the face detected.
-![UE interface](image-2.png)
+![UE interface](readme-assets/ue_scene.png)
 
-Additionally, you may tweak and make changes to the camera and head tracking components. This may be done by selecting the camera in the scene, when in "Selection Mode" and seeing the menus in the outliner.
+Additionally, you may tweak and make changes to the camera and head tracking components. This may be done by selecting the camera in the scene, must be in "Selection Mode", and seeing the menus in the "Details" tab.
 
-Here is the settings for the Head tracking (Actor component).
-![Head tracking settings](image-3.png)
+Here is the settings for the Head tracking (Actor component). This category is to modify server data reveived.
+![Head tracking settings](readme-assets/uproperty_headtracking.png)
+Explained:
+
+- Use smoothing: tells if the camera will be real time or lose some real-time to make movement smoother.
+- ZAxis: enable/disable usage of the Z coordinate.
+- Camera centering: the center coordinates of a face from the face tracking server. When the face is in the middle of the frame. This makes sure the XYZ coordinates are 0, 0, 0 in UE.
+- Inside Smoothing (subcategory), Smoothing Buffer Size: an integer telling the amount of smoothing to be added. May be 0->inf, depending on the smoothing that is desired.
 
 Here is the settings for the Movable camera (Camera component).
-![Camera tweaking](image-4.png)
+![All uproperty settings](readme-assets/uproperty_movable_cam.png)
+Explained:
 
-File structure in C++:
-![file structure](image-1.png)
+- Include Rotation: enable/disable rotation of camera based on face data.
+- Include Movement: enable/disable movement of camera based on face data.
+- Transform: change location and direction of camera when the game is run, this must be changed not original transform.
+- Movement sensitivity: separately tweak sensitivity for XYZ movement.
+- Rotation sensitivity: separately tweak sensitivity for XYZ rotation. Z rotation sensitivity should be 0 (zero).
+- FOV: enable/disable FOV and set the sensitivity.
+
+File structure in of the C++ part of the UE project:
+![file structure](readme-assets/filesystem_c++.png)
 
 ## Credits
 
