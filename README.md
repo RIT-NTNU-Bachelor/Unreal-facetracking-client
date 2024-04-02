@@ -69,22 +69,22 @@ Alternatively use GitHub Desktop, File->Clone Repository.
 
 To open and build the project you may do it in two ways:
 
-- Launch using Unreal Engine.
+- **Launch using Unreal Engine.**
 
 1. Press "Generate Visual Studio project files.
 2. Press "Open"
    ![Files in project](readme-assets/project_files_rclick_ue.png)
    This will launch the editor and allow you to start working and using the project.
 
-- Launch using Visual Studio.
+- **Launch using Visual Studio.**
 
 1. Open the project file: UserLocServer.sln, in Visual Studio 2022.
 2. Press "Run".
    ![Image of VS2022 Run button](readme-assets/visual_studio_play.png)
    This opens up the UE editor and allow you to start working and using the project.
 
-- Alternative: "Launch Game"
-  This runs the game, and may not work as intended.
+- **Alternative: "Launch Game"**
+  > This runs the game, and may not work as intended.
 
 ## Usage
 
@@ -94,8 +94,8 @@ To use the project as intended, run a server as mentioned in Requirements. Press
 Additionally, you may tweak and make changes to the camera and head tracking components. This may be done by selecting the camera in the scene, must be in "Selection Mode", and seeing the menus in the "Details" tab.
 
 Here is the settings for the Head tracking (Actor component). This category is to modify server data reveived.
-![Head tracking settings](readme-assets/uproperty_headtracking.png)
-Explained:
+![Head tracking settings](readme-assets/uproperty_headtracking.png) <br />
+**Explained:**
 
 - Use smoothing: tells if the camera will be real time or lose some real-time to make movement smoother.
 - ZAxis: enable/disable usage of the Z coordinate.
@@ -103,8 +103,8 @@ Explained:
 - Inside Smoothing (subcategory), Smoothing Buffer Size: an integer telling the amount of smoothing to be added. May be 0->inf, depending on the smoothing that is desired.
 
 Here is the settings for the Movable camera (Camera component).
-![All uproperty settings](readme-assets/uproperty_movable_cam.png)
-Explained:
+![All uproperty settings](readme-assets/uproperty_movable_cam.png) <br />
+**Explained:**
 
 - Include Rotation: enable/disable rotation of camera based on face data.
 - Include Movement: enable/disable movement of camera based on face data.
@@ -113,7 +113,7 @@ Explained:
 - Rotation sensitivity: separately tweak sensitivity for XYZ rotation. Z rotation sensitivity should be 0 (zero).
 - FOV: enable/disable FOV and set the sensitivity.
 
-File structure in of the C++ part of the UE project:
+File structure in of the C++ part of the UE project: <br />
 ![file structure](readme-assets/filesystem_c++.png)
 
 ## Credits
