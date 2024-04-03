@@ -36,6 +36,7 @@ Unreal Engine was utilized to acheive this effect as it has existing features ne
 **[Requirements](#Requirements)**<br>
 **[Installation](#Installation)**<br>
 **[Usage](#Usage)**<br>
+**[System Description](#System-Description)**<br>
 **[Credits](#Credits)**<br>
 **[License](#License)**<br>
 
@@ -115,6 +116,13 @@ Here is the settings for the Movable camera (Camera component).
 
 File structure in of the C++ part of the UE project: <br />
 ![file structure](readme-assets/filesystem_c++.png)
+
+## System Description
+
+The system consists of two primary components: the Face Tracking server and the Rendering Engine Client. The Face Tracking Server uses OpenCV to process frames in real-time. For each frame, it detects the position of the face. Once the position is ascertained, these coordinates are sent using the UDP (User Datagram Protocol) to ensure fast and efficient transmission. The Rendering Engine Client then takes over by parsing the received coordinates. Using this data, the engine re-renders the scene to align with the new position of the face. This cycle of detection, transmission, and rendering continues seamlessly with each frame, allowing for a responsive and dynamic integration of face tracking data with the rendered content: 
+
+![image](https://github.com/RIT-NTNU-Bachelor/Unreal-facetracking-client/assets/66110094/5c48a2a6-4d80-40b1-8c07-f7020125e143)
+
 
 ## Credits
 
