@@ -62,14 +62,23 @@ void AMovableCamera::Tick(float DeltaTime)
     UpdatePosition();
 }
 
+
+float AMovableCamera::FOV(float z) {
+    // Constants that can be tweaked 
+    float L = 20.0f;
+    float C = 70.0f;
+    float k = 0.01f;
+    float z0 = 60.0f;
+
+    // Returning the result of the sigmoid calculation 
+    float result = (L / (1 + exp(-k * (z - z0))) + C);
+    return result;
+}
+
 void AMovableCamera::UpdatePosition()
 {
     FVector LastKnownPosition = StartLocation;
     FRotator LastKnownRotation = StartDirection;
-    float FOVmax = 120;
-    float FOVmin = 50;
-    float ZFov;
-    float ZLimit = 250.0f;
 
     HeadTrackingComponent->UpdateHeadPosition(newLocation);
 
@@ -79,7 +88,6 @@ void AMovableCamera::UpdatePosition()
         X = newLocation.X * XMovementSensitivity;
         Y = newLocation.Y * YMovementSensitivity;
         Z = newLocation.Z * ZMovementSensitivity;
-        if (Z < 0 && abs(Z) > ZLimit) Z = -ZLimit;
         
         LastKnownPosition = StartLocation + FVector(Z, X, Y);
         CameraComponent->SetRelativeLocation(LastKnownPosition); // Sets new position in the world.
@@ -97,17 +105,9 @@ void AMovableCamera::UpdatePosition()
     // Option to include or remove fov.
     if (HeadTrackingComponent->ZAxis && FOVEnabled)
     {
-        ZFov = abs((-newLocation.Z / FOVSensitivity) + 80.0f);
-
-        if (ZFov < FOVmin)
-        {
-            ZFov = FOVmin;
-        }
-        else if (ZFov > FOVmax)
-        {
-            ZFov = FOVmax;
-        }
-        CameraComponent->SetFieldOfView(ZFov);
-        UE_LOG(LogTemp, Warning, TEXT("FOV: %f"), ZFov);
+        float new_fov = this->FOV(Z);
+        CameraComponent->SetFieldOfView(new_fov);
+        UE_LOG(LogTemp, Warning, TEXT("FOV: %f"), new_fov);
     }
 }
+
