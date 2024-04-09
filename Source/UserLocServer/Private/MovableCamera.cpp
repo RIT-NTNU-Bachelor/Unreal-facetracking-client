@@ -5,12 +5,12 @@
 // Sets default values
 AMovableCamera::AMovableCamera()
 {
- 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+    // Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+    PrimaryActorTick.bCanEverTick = true;
     HeadTrackingComponent = CreateDefaultSubobject<UHeadTracking>(TEXT("HeadTrackingComponent"));
 
-	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
-	RootComponent = CameraComponent;
+    CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
+    RootComponent = CameraComponent;
 
     StartLocation = FVector(0.0f, 0.0f, 0.0f);
     StartDirection = FRotator(0.0f, 0.0f, 0.0f);
@@ -21,13 +21,18 @@ AMovableCamera::AMovableCamera()
     FOVEnabled = true;
     FOVSensitivity = 3.0f;
 
-    XMovementSensitivity = 1.0f;
-    YMovementSensitivity = 1.0f;
+    XMovementSensitivity = 2.0f;
+    YMovementSensitivity = 2.0f;
     ZMovementSensitivity = 1.0f;
 
     XRotationSensitivity = 0.1f;
     YRotationSensitivity = 0.1f;
     ZRotationSensitivity = 0.0f;
+
+    // Setting configuration for calculating the camera center 
+    focal_length = 635.0f;
+    center_x_camera = 345.0f;
+    center_y_camera = 250.0f;
 
     newLocation = FVector();
 }
@@ -35,7 +40,7 @@ AMovableCamera::AMovableCamera()
 // Called when the game starts or when spawned
 void AMovableCamera::BeginPlay()
 {
-	Super::BeginPlay();
+    Super::BeginPlay();
     HeadTrackingComponent->StartHeadTracking();
 
     APlayerController* PlayerController = GetWorld()->GetFirstPlayerController(); // Retrieves the FP controller.
@@ -58,7 +63,7 @@ void AMovableCamera::BeginPlay()
 // Called every frame
 void AMovableCamera::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
+    Super::Tick(DeltaTime);
     UpdatePosition();
 }
 
@@ -72,9 +77,18 @@ float AMovableCamera::FOV(float z) {
     UE_LOG(LogTemp, Warning, TEXT("FOV Z CORD: %f"), z);
 
     // Returning the result of the sigmoid calculation 
-    float result = L / (1 + exp(( k * (z - z0)))) + C;
+    float result = L / (1 + exp((k * (z - z0)))) + C;
     return result;
 }
+
+float AMovableCamera::translate_x(float x, float z) {
+    return ((x - center_x_camera) * z / focal_length);
+}
+
+float AMovableCamera::translate_y(float y, float z) {
+    return ((y - center_y_camera) * z / focal_length);
+}
+
 
 void AMovableCamera::UpdatePosition()
 {
@@ -86,15 +100,15 @@ void AMovableCamera::UpdatePosition()
     // New position of the camera after handling as FVector, the standard format of coordinates.
     if (IncludeMovement)
     {
-        X = newLocation.X * XMovementSensitivity;
-        Y = newLocation.Y * YMovementSensitivity;
+        X = translate_x(newLocation.X, newLocation.Z) * XMovementSensitivity;
+        Y = translate_y(newLocation.Y, newLocation.Z) * YMovementSensitivity;
         Z = newLocation.Z * ZMovementSensitivity;
-        
+
         LastKnownPosition = StartLocation + FVector(Z, X, Y);
         CameraComponent->SetRelativeLocation(LastKnownPosition); // Sets new position in the world.
         UE_LOG(LogTemp, Warning, TEXT("X: %f, Y: %f, Z: %f"), X, Y, Z);
     }
-    
+
     // Option to remove rotation aspect of camera movement in UE.
     if (IncludeRotation)
     {
@@ -105,7 +119,7 @@ void AMovableCamera::UpdatePosition()
 
     // Option to include or remove fov.
     if (HeadTrackingComponent->ZAxis && FOVEnabled)
-    {   
+    {
         float new_fov = this->FOV(newLocation.Z + HeadTrackingComponent->CameraCentering.Z);
         CameraComponent->SetFieldOfView(new_fov);
         UE_LOG(LogTemp, Warning, TEXT("FOV: %f"), new_fov);
