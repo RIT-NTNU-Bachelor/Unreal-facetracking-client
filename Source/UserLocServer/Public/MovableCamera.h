@@ -73,8 +73,12 @@ public:
     UPROPERTY(EditAnywhere, Category = "Camera Tweaking|FOV")
         float FOVSensitivity;
 
+
 private:
     FVector newLocation;
+
+    // Function to calculate FOV
+    float FOV(float z);
 
     float X;
     float Y;
