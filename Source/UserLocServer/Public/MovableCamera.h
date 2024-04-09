@@ -129,6 +129,4 @@ private:
 
     void UpdatePosition();
     void LoadPresetsFromDataTable();
-
-    bool CreatePreset();
 };

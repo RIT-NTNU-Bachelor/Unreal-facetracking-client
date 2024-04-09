@@ -139,8 +139,3 @@ void AMovableCamera::LoadPresetsFromDataTable()
     }
 }
 
-
-bool AMovableCamera::CreatePreset()
-{
-    return false;
-}
