@@ -3,11 +3,14 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Camera/CameraComponent.h"
+#include "GameFramework/Pawn.h"
 #include "EngineUtils.h"
+
 #include "UDPReceiver.h"
 #include "HeadTracking.h"
-#include "GameFramework/Pawn.h"
+
 #include <iostream>
+
 #include "MovableCamera.generated.h"
 
 UCLASS()
