@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #include "MovableCamera.h"
 
 // Sets default values
@@ -11,25 +9,10 @@ AMovableCamera::AMovableCamera()
 
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	RootComponent = CameraComponent;
-
-    StartLocation = FVector(0.0f, 0.0f, 0.0f);
-    StartDirection = FRotator(0.0f, 0.0f, 0.0f);
-
-    IncludeRotation = true;
-    IncludeMovement = true;
-
-    FOVEnabled = true;
-    FOVSensitivity = 3.0f;
-
-    XMovementSensitivity = 1.0f;
-    YMovementSensitivity = 1.0f;
-    ZMovementSensitivity = 1.0f;
-
-    XRotationSensitivity = 0.1f;
-    YRotationSensitivity = 0.1f;
-    ZRotationSensitivity = 0.0f;
-
     newLocation = FVector();
+    
+    PresetDataTable = Cast<UDataTable>(StaticLoadObject(UDataTable::StaticClass(), nullptr, TEXT("/Script/Engine.DataTable'/Game/Presets/CameraPresets.CameraPresets'")));
+    if (PresetDataTable) LoadPresetsFromDataTable();
 }
 
 // Called when the game starts or when spawned
@@ -110,4 +93,54 @@ void AMovableCamera::UpdatePosition()
         CameraComponent->SetFieldOfView(ZFov);
         UE_LOG(LogTemp, Warning, TEXT("FOV: %f"), ZFov);
     }
+}
+
+void AMovableCamera::ChangeCameraSettings(int32 PresetIndex)
+{
+    if (CameraPresets.IsValidIndex(PresetIndex))
+    {
+        FCameraPreset Preset = CameraPresets[PresetIndex];
+
+        // Set the camera properties based on the preset
+        IncludeRotation = Preset.IncRot;
+        IncludeMovement = Preset.IncMov;
+        FOVEnabled = Preset.IncFov;
+
+        XMovementSensitivity = Preset.XMoveSen;
+        YMovementSensitivity = Preset.YMoveSen;
+        ZMovementSensitivity = Preset.ZMoveSen;
+
+        XRotationSensitivity = Preset.XRotSen;
+        YRotationSensitivity = Preset.YRotSen;
+        ZRotationSensitivity = Preset.ZRotSen;
+
+        FOVSensitivity = Preset.FOVSen;
+    }
+}
+
+void AMovableCamera::LoadPresetsFromDataTable()
+{
+    if (PresetDataTable)
+    {
+        static const FString ContextString(TEXT("Camera Preset Data Table"));
+
+        // Iterate over each row in the data table
+        for (auto& RowName : PresetDataTable->GetRowNames())
+        {
+            // Retrieve each row as an FCameraPreset struct
+            FCameraPreset* Preset = PresetDataTable->FindRow<FCameraPreset>(RowName, ContextString, true);
+
+            if (Preset)
+            {
+                // Add the struct to your CameraPresets array
+                CameraPresets.Add(*Preset);
+            }
+        }
+    }
+}
+
+
+bool AMovableCamera::CreatePreset()
+{
+    return false;
 }
