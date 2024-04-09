@@ -81,12 +81,12 @@ float AMovableCamera::FOV(float z) {
     return result;
 }
 
-float AMovableCamera::translate_x(float x, float z) {
-    return ((x - center_x_camera) * z / focal_length);
+float AMovableCamera::translate_x(float x) {
+    return ((x - center_x_camera) / focal_length);
 }
 
-float AMovableCamera::translate_y(float y, float z) {
-    return ((y - center_y_camera) * z / focal_length);
+float AMovableCamera::translate_y(float y) {
+    return ((y - center_y_camera) / focal_length);
 }
 
 
@@ -100,8 +100,8 @@ void AMovableCamera::UpdatePosition()
     // New position of the camera after handling as FVector, the standard format of coordinates.
     if (IncludeMovement)
     {
-        X = translate_x(newLocation.X, newLocation.Z) * XMovementSensitivity;
-        Y = translate_y(newLocation.Y, newLocation.Z) * YMovementSensitivity;
+        X = translate_x(newLocation.X) * XMovementSensitivity;
+        Y = translate_y(newLocation.Y) * YMovementSensitivity;
         Z = newLocation.Z * ZMovementSensitivity;
 
         LastKnownPosition = StartLocation + FVector(Z, X, Y);

@@ -92,6 +92,6 @@ private:
     void UpdatePosition();
 
     // Functions for translating the postion of the x and y value correctly 
-    float translate_x(float x, float z);
-    float translate_y(float y, float z);
+    float translate_x(float x);
+    float translate_y(float y);
 };
