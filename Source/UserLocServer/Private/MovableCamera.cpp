@@ -1,5 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+#include "Math/Matrix.h"
 #include "MovableCamera.h"
 
 // Sets default values
@@ -8,7 +9,6 @@ AMovableCamera::AMovableCamera()
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
     HeadTrackingComponent = CreateDefaultSubobject<UHeadTracking>(TEXT("HeadTrackingComponent"));
-
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	RootComponent = CameraComponent;
 
@@ -30,6 +30,7 @@ AMovableCamera::AMovableCamera()
     ZRotationSensitivity = 0.0f;
 
     newLocation = FVector();
+    ProjectionEnabled = true;
 }
 
 // Called when the game starts or when spawned
@@ -55,6 +56,7 @@ void AMovableCamera::BeginPlay()
     }
 }
 
+
 // Called every frame
 void AMovableCamera::Tick(float DeltaTime)
 {
@@ -75,6 +77,7 @@ float AMovableCamera::FOV(float z) {
     float result = L / (1 + exp(( k * (z - z0)))) + C;
     return result;
 }
+
 
 void AMovableCamera::UpdatePosition()
 {
@@ -110,5 +113,59 @@ void AMovableCamera::UpdatePosition()
         CameraComponent->SetFieldOfView(new_fov);
         UE_LOG(LogTemp, Warning, TEXT("FOV: %f"), new_fov);
     }
+
+    // Set the custom projection matrix initially
+    if (ProjectionEnabled);
+}
+
+// CalculateCustomProjectionMatrix
+FMatrix AMovableCamera::GetProjectionMatrix(
+    const FVector& pa,
+    const FVector& pb,
+    const FVector& pc,
+    const FVector& pe,
+    float near_clip,
+    float far_clip) {
+
+    // Compute the screen's orthonormal basis vectors
+    FVector vr = (pb - pa).GetSafeNormal();
+    FVector vu = (pc - pa).GetSafeNormal();
+    FVector vn = FVector::CrossProduct(vr, vu).GetSafeNormal();
+
+    // Compute vectors from pe to each of the screen's corners
+    FVector va = pa - pe;
+    FVector vb = pb - pe;
+    FVector vc = pc - pe;
+
+    // Compute the distance from the eye to screen plane
+    float d = -FVector::DotProduct(va, vn);
+
+    // Compute the extents of the perpendicular projection
+    float l = FVector::DotProduct(vr, va) * near_clip / d;
+    float r = FVector::DotProduct(vr, vb) * near_clip / d;
+    float b = FVector::DotProduct(vu, va) * near_clip / d;
+    float t = FVector::DotProduct(vu, vc) * near_clip / d;
+
+    // Construct the projection matrix
+    FMatrix projectionMatrix = FMatrix();
+    projectionMatrix.M[0][0] = 2.0f * near_clip / (r - l);
+    projectionMatrix.M[1][1] = 2.0f * near_clip / (t - b);
+    projectionMatrix.M[2][2] = -(far_clip + near_clip) / (far_clip - near_clip);
+    projectionMatrix.M[2][3] = -1.0f;
+    projectionMatrix.M[3][2] = -(2.0f * far_clip * near_clip) / (far_clip - near_clip);
+    projectionMatrix.M[0][2] = (r + l) / (r - l);
+    projectionMatrix.M[1][2] = (t + b) / (t - b);
+    projectionMatrix.M[3][3] = 0.0f;
+
+    // Construct the rotation matrix from the basis vectors
+    FMatrix rotationMatrix = FMatrix();
+    rotationMatrix.M[0][0] = vr.X; rotationMatrix.M[1][0] = vr.Y; rotationMatrix.M[2][0] = vr.Z;
+    rotationMatrix.M[0][1] = vu.X; rotationMatrix.M[1][1] = vu.Y; rotationMatrix.M[2][1] = vu.Z;
+    rotationMatrix.M[0][2] = vn.X; rotationMatrix.M[1][2] = vn.Y; rotationMatrix.M[2][2] = vn.Z;
+
+    // Combine the matrices
+    FMatrix finalMatrix = rotationMatrix * projectionMatrix;
+
+    return finalMatrix;
 }
 

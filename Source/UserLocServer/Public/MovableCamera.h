@@ -3,6 +3,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Camera/CameraComponent.h"
+#include "Components/SceneCaptureComponent2D.h"
 #include "EngineUtils.h"
 #include "UDPReceiver.h"
 #include "HeadTracking.h"
@@ -34,10 +35,15 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-    // Preset modifier in UE.
-   // Todo
+    // Custom function to calculate the skewed frustum projection matrix
+    FMatrix GetProjectionMatrix(const FVector& pa,
+        const FVector& pb,
+        const FVector& pc,
+        const FVector& pe,
+        float near_clip,
+        float far_clip);
 
-   // Start location modifiers in UE.
+    // Start location modifiers in UE.
     UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Transform")
         FVector StartLocation;
     UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Transform")
@@ -73,9 +79,16 @@ public:
     UPROPERTY(EditAnywhere, Category = "Camera Tweaking|FOV")
         float FOVSensitivity;
 
+    // Projection settings
+    UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Projection")
+        bool ProjectionEnabled;
 
 private:
     FVector newLocation;
+    
+    // Scene capture component for the camera
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+        USceneCaptureComponent2D* SceneCaptureComponent;
 
     // Function to calculate FOV
     float FOV(float z);
