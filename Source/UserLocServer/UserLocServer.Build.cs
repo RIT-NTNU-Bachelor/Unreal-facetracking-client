@@ -7,10 +7,11 @@ public class UserLocServer : ModuleRules
 	public UserLocServer(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "Sockets", "Networking" });
 
-		PrivateDependencyModuleNames.AddRange(new string[] {  });
+        PrivateIncludePaths.AddRange(new string[] { "OffAxisProjection/Private" });
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "Sockets", "Networking", "UMG", "Slate", "SlateCore" });
+
+		PrivateDependencyModuleNames.AddRange(new string[] { "RHI", "RenderCore", "HeadMountedDisplay" });
 
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
