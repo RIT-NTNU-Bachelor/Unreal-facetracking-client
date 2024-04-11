@@ -75,6 +75,8 @@ public:
 
 
 private:
+    FVector newLocation;
+
     // Function to calculate FOV
     float FOV(float z);
 
@@ -93,6 +95,6 @@ private:
 
     void UpdatePosition();
 
-    void TranslateX(float x_opencv);
-    void TranslateY(float y_opencv);
+    float TranslateX(float x_opencv);
+    float TranslateY(float y_opencv);
 };

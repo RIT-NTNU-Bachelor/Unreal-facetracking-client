@@ -29,6 +29,14 @@ AMovableCamera::AMovableCamera()
     YRotationSensitivity = 0.1f;
     ZRotationSensitivity = 0.0f;
 
+
+    // Setting values for X and Y translation
+    // Focal length of the camera
+    FocalLength = 635.0;
+    Scalar = 2.0f;
+    CX = 100.0f;
+    CY = 100.0f;
+
     newLocation = FVector();
 }
 
@@ -112,3 +120,11 @@ void AMovableCamera::UpdatePosition()
     }
 }
 
+float  AMovableCamera::TranslateX(float x_opencv) {
+    return (((x_opencv - CX) / FocalLength) * Scalar);
+};
+
+
+float  AMovableCamera::TranslateY(float y_opencv) {
+    return (((y_opencv - CY) / FocalLength) * Scalar);
+};
