@@ -8,9 +8,25 @@ public class UserLocServer : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-        PrivateIncludePaths.AddRange(new string[] { "OffAxisProjection/Private" });
-        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "Sockets", "Networking" });
+        PublicDependencyModuleNames.AddRange(new string[] { 
+			"Core", 
+			"CoreUObject", 
+			"Engine", 
+			"InputCore", 
+			"Sockets", 
+			"Networking",
+			"Slate",
+			"SlateCore",
+			"HeadMountedDisplay",
+            "UMG"
+        });
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "RHI" });
+		PrivateDependencyModuleNames.AddRange(new string[] {
+            "CoreUObject",
+            "Engine",
+            "RHI",
+            "RenderCore",
+            "CinematicCamera"
+        });
 	}
 }
