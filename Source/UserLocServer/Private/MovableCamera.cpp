@@ -79,17 +79,14 @@ void AMovableCamera::Tick(float DeltaTime)
 }
 
 
-float AMovableCamera::FOV(float z) {
-    // Constants that can be tweaked 
-    float L = 30.0f;
-    float C = 70.0f;
-    float k = 0.03f;
-    float z0 = 70.0f;
-    UE_LOG(LogTemp, Warning, TEXT("FOV Z CORD: %f"), z);
+float AMovableCamera::FOV(float x, float z) {
+    // Calculating variables
+    float l = x * Scalar_X;
+    float r = (CX * 2 - l) * Scalar_X;
+    float distance = (sqrt(l * l + z * z) * sqrt(r * r + z * z));
 
     // Returning the result of the sigmoid calculation 
-    float result = L / (1 + exp(( k * (z - z0)))) + C;
-    return result;
+    return (acos((-l * r + z * z) / distance))*30;
 }
 
 void AMovableCamera::UpdatePosition()
@@ -123,7 +120,7 @@ void AMovableCamera::UpdatePosition()
     // Option to include or remove fov.
     if (HeadTrackingComponent->ZAxis && FOVEnabled)
     {   
-        float new_fov = this->FOV(newLocation.Z + HeadTrackingComponent->CameraCentering.Z);
+        float new_fov = this->FOV(newLocation.X + HeadTrackingComponent->CameraCentering.X, newLocation.Z + HeadTrackingComponent->CameraCentering.Z);
         CameraComponent->SetFieldOfView(new_fov);
         UE_LOG(LogTemp, Warning, TEXT("FOV: %f"), new_fov);
     }
