@@ -75,8 +75,6 @@ public:
 
 
 private:
-    FVector newLocation;
-
     // Function to calculate FOV
     float FOV(float z);
 
@@ -84,5 +82,17 @@ private:
     float Y;
     float Z;
 
+    // Focal length of the camera
+    float FocalLength;
+    float Scalar;
+
+    // Center position of OpenCV Frame
+    float CX;
+    float CY;
+
+
     void UpdatePosition();
+
+    void TranslateX(float x_opencv);
+    void TranslateY(float y_opencv);
 };
