@@ -86,7 +86,10 @@ private:
 
     // Focal length of the camera
     float FocalLength;
-    float Scalar;
+    float Scalar_X;
+    float Scalar_Y;
+    float WidthUE; 
+    float HeightUE;
 
     // Center position of OpenCV Frame
     float CX;
