@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Math/Matrix.h"
 #include "MovableCamera.h"
+#include "Math/Matrix.h"
 
 // Sets default values
 AMovableCamera::AMovableCamera()
@@ -115,7 +115,6 @@ void AMovableCamera::UpdatePosition()
     }
 
     // Set the custom projection matrix initially
-    if (ProjectionEnabled);
 }
 
 // CalculateCustomProjectionMatrix
