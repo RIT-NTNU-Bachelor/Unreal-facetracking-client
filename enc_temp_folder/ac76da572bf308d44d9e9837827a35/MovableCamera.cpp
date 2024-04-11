@@ -32,18 +32,16 @@ AMovableCamera::AMovableCamera()
 
     // Setting values for X and Y translation
     // Focal length of the camera
-    FocalLength = 635.0;    // Get Focal Length from camera specs
-    WidthUE = 600.0f;       // Measure within Unreal Editor 
-    HeightUE = 400.0f;      // Measure within Unreal Editor 
+    FocalLength = 635.0;
+    WidthUE = 600.0f;
+    HeightUE = 400.0f;
 
 
     // SCALAR = MAX_WIDTH_UE / FRAME_WIDTH_OPENCV
-    // Change to the correct scale of values 
-    // Note that it may be to much movement. Take 80% of it to take into account the wall
-    Scalar_X = (WidthUE / 480.0f) * 0.80f;
-    Scalar_Y = (HeightUE / 480.0f) * 0.80f;
-    CX = 320.0f;    // Retrive from camera-center.py
-    CY = 240.0f;    // Retrive from camera-center.py
+    Scalar_X = WidthUE /480.0f - (WidthUE / 480.0f)*0.40f;
+    Scalar_Y = HeightUE / 480.0f - (HeightUE / 480.0f) * 0.40f;
+    CX = 320.0f;
+    CY = 240.0f;
 
     newLocation = FVector();
 }
@@ -102,11 +100,11 @@ void AMovableCamera::UpdatePosition()
     // New position of the camera after handling as FVector, the standard format of coordinates.
     if (IncludeMovement)
     {
+        
         X = TranslateX(newLocation.X);
         Y = TranslateY(newLocation.Y);
         Z = newLocation.Z * ZMovementSensitivity;
         
-        // Translating the cordinates relative to the cameras axis 
         LastKnownPosition = StartLocation + FVector(Z, -X, -Y);
         CameraComponent->SetRelativeLocation(LastKnownPosition); // Sets new position in the world.
         UE_LOG(LogTemp, Warning, TEXT("X: %f, Y: %f, Z: %f"), X, Y, Z);
@@ -131,22 +129,17 @@ void AMovableCamera::UpdatePosition()
 
 
 float  AMovableCamera::TranslateX(float x_opencv) {
-    // Calculate the x translation 
     float res = (((2 * CX * x_opencv - 2 * CX) / FocalLength) * Scalar_X);
 
-    // Use half of the set width as a maximum + padding based on the wall
-    if (abs(res) > (WidthUE / 2 - 20))
+    if (res > (WidthUE / 2 - 20))
         return WidthUE / 2 - 20; 
     return res; 
 };
 
 
 float  AMovableCamera::TranslateY(float y_opencv) {
-    // Calculate the y translation 
     float res = (((2 * CY * y_opencv - 2 * CY) / FocalLength) * Scalar_Y);
-
-    // Use half of the set height as a maximum + padding based on the wall
-    if (abs(res) > (WidthUE / 2 - 20))
+    if (res > (WidthUE / 2 - 20))
         return WidthUE / 2 - 20;
     return res;
 };

@@ -84,5 +84,20 @@ private:
     float Y;
     float Z;
 
+    // Focal length of the camera
+    float FocalLength;
+    float Scalar_X;
+    float Scalar_Y;
+    float WidthUE; 
+    float HeightUE;
+
+    // Center position of OpenCV Frame
+    float CX;
+    float CY;
+
+
     void UpdatePosition();
+
+    float TranslateX(float x_opencv);
+    float TranslateY(float y_opencv);
 };
