@@ -40,8 +40,8 @@ AMovableCamera::AMovableCamera()
     // SCALAR = MAX_WIDTH_UE / FRAME_WIDTH_OPENCV
     // Change to the correct scale of values 
     // Note that it may be to much movement. Take 80% of it to take into account the wall
-    Scalar_X = (WidthUE / 480.0f) * 0.80f;
-    Scalar_Y = (HeightUE / 480.0f) * 0.80f;
+    Scalar_X = (WidthUE / 480.0f) * 0.50f;
+    Scalar_Y = (HeightUE / 480.0f) * 0.70f;
     CX = 320.0f;    // Retrive from camera-center.py
     CY = 240.0f;    // Retrive from camera-center.py
 
