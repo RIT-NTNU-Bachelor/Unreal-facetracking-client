@@ -49,13 +49,13 @@ bool UHeadTracking::StartHeadTracking()
 void UHeadTracking::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
     FVector newLocation = FVector();
-    UpdateHeadPosition(newLocation);
+    GetFaceCoordinates(newLocation);
 }
 
 /*
 * Updates head position based on the UDP component data.
 */
-void UHeadTracking::UpdateHeadPosition(FVector& newLocation)
+void UHeadTracking::GetFaceCoordinates(FVector& newLocation)
 {
     FString Data = "";
 

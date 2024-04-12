@@ -8,31 +8,16 @@ AMovableCamera::AMovableCamera()
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
     HeadTrackingComponent = CreateDefaultSubobject<UHeadTracking>(TEXT("HeadTrackingComponent"));
-
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	RootComponent = CameraComponent;
-
-    StartLocation = FVector(0.0f, 0.0f, 0.0f);
-    StartDirection = FRotator(0.0f, 0.0f, 0.0f);
-
+    
+    // Set up standard values for Camera Tweaking.
     IncludeRotation = true;
     IncludeMovement = true;
-
     FOVEnabled = true;
-
-    // TODO: change to be based on K, L and Z0 not FOV sensitivity 
-    FOVSensitivity = 3.0f;
-
-
-    // TODO REMOVE X AND Y SENSITVITY AND CHANGE TO PRESET FOR Scalar_X and Scalar_Y
-    XMovementSensitivity = 1.0f;
-    YMovementSensitivity = 1.0f;
-    ZMovementSensitivity = 1.0f;
-
-    XRotationSensitivity = 0.1f;
-    YRotationSensitivity = 0.1f;
-    ZRotationSensitivity = 0.0f;
-
+    FOVSensitivity = 0.03f;
+    XMovementSensitivity = 0.5f;
+    YMovementSensitivity = 0.7f;
 
     // Setting values for X and Y translation
     // Focal length of the camera
@@ -40,18 +25,20 @@ AMovableCamera::AMovableCamera()
     WidthUE = 600.0f;       // Measure within Unreal Editor 
     HeightUE = 400.0f;      // Measure within Unreal Editor 
 
-
     // SCALAR = MAX_WIDTH_UE / FRAME_WIDTH_OPENCV
     // Change to the correct scale of values 
     // Note that it may be to much movement. Take 80% of it to take into account the wall
-    Scalar_X = (WidthUE / 480.0f) * 0.50f;
-    Scalar_Y = (HeightUE / 480.0f) * 0.70f;
     CX = 320.0f;    // Retrive from camera-center.py
     CY = 240.0f;    // Retrive from camera-center.py
+
+    // Set the scalars used in camera movement.
+    Scalar_X = (WidthUE / 480.0f) * XMovementSensitivity;
+    Scalar_Y = (HeightUE / 480.0f) * YMovementSensitivity;
 
     // Initilize the new location as a vector 
     newLocation = FVector();
 }
+
 
 // Called when the game starts or when spawned
 void AMovableCamera::BeginPlay()
@@ -76,12 +63,14 @@ void AMovableCamera::BeginPlay()
     }
 }
 
+
 // Called every frame
 void AMovableCamera::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
     UpdatePosition();
 }
+
 
 /*
     Function that calucated the new field of view.
@@ -94,14 +83,14 @@ float AMovableCamera::FOV(float z) {
     // Constants that can be tweaked 
     float L = 30.0f;
     float C = 70.0f;
-    float k = 0.03f;
     float z0 = 70.0f;
     UE_LOG(LogTemp, Warning, TEXT("FOV Z CORD: %f"), z);
 
     // Returning the result of the sigmoid calculation 
-    float result = L / (1 + exp(( k * (z - z0)))) + C;
+    float result = L / (1 + exp((FOVSensitivity * (z - z0)))) + C;
     return result;
 }
+
 
 /*
     Function that translates the camera to a new x position based.
@@ -123,7 +112,6 @@ float  AMovableCamera::TranslateX(float x_opencv) {
 };
 
 
-
 /*
     Function that translates the camera to a new y position based.
     Using both scalar and normalizing based on the frame height and focal length of the camera.
@@ -142,16 +130,15 @@ float  AMovableCamera::TranslateY(float y_opencv) {
     return new_y;
 };
 
+// Update the position of the movable camera, called each tick.
 void AMovableCamera::UpdatePosition()
 {
     // Retriving the last known position and rotation of camera component 
     FVector LastKnownPosition = StartLocation;
     FRotator LastKnownRotation = StartDirection;
 
-
-    // TODO: why do we do this and this: CameraComponent->SetWorldRotation(LastKnownRotation);
-    // Please clearify mr sander
-    HeadTrackingComponent->UpdateHeadPosition(newLocation);
+    // Gets the face coordinates from the headtracking component.
+    HeadTrackingComponent->GetFaceCoordinates(newLocation);
 
     // New position of the camera after handling as FVector, the standard format of coordinates.
     if (IncludeMovement)
@@ -159,7 +146,6 @@ void AMovableCamera::UpdatePosition()
         // Calculate the new change in x and y position 
         X = TranslateX(newLocation.X);
         Y = TranslateY(newLocation.Y);
-
         // The Z axis moves relative to its input from OpenCV server multiplied by its own factor
         Z = newLocation.Z * ZMovementSensitivity;
         
@@ -174,8 +160,13 @@ void AMovableCamera::UpdatePosition()
     if (IncludeRotation)
     {
         // New position of the camera after handling as FRotator, the standard format of rotation.
-        LastKnownRotation = StartDirection + FRotator(newLocation.Y * YRotationSensitivity, newLocation.X * XRotationSensitivity, newLocation.Z * ZRotationSensitivity);
-        CameraComponent->SetWorldRotation(LastKnownRotation); // Sets new rotation relative to parent.
+        LastKnownRotation = StartDirection + FRotator(
+            newLocation.Y * YRotationSensitivity, 
+            newLocation.X * XRotationSensitivity, 
+            newLocation.Z * ZRotationSensitivity
+        );
+        // Sets new rotation relative to the world.
+        CameraComponent->SetWorldRotation(LastKnownRotation); 
     }
 
     // Option to include or remove fov.
@@ -191,27 +182,7 @@ void AMovableCamera::UpdatePosition()
 }
 
 
-float  AMovableCamera::TranslateX(float x_opencv) {
-    // Calculate the x translation 
-    float res = (((2 * CX * x_opencv - 2 * CX) / FocalLength) * Scalar_X);
-
-    // Use half of the set width as a maximum + padding based on the wall
-    if (abs(res) > (WidthUE / 2 - 20))
-        return WidthUE / 2 - 20; 
-    return res; 
-};
-
-
-float  AMovableCamera::TranslateY(float y_opencv) {
-    // Calculate the y translation 
-    float res = (((2 * CY * y_opencv - 2 * CY) / FocalLength) * Scalar_Y);
-
-    // Use half of the set height as a maximum + padding based on the wall
-    if (abs(res) > (WidthUE / 2 - 20))
-        return WidthUE / 2 - 20;
-    return res;
-};
-
+// Sets the camera settings based on preset index, from data table.
 void AMovableCamera::ChangeCameraSettings(int32 PresetIndex)
 {
     if (CameraPresets.IsValidIndex(PresetIndex))
@@ -236,8 +207,10 @@ void AMovableCamera::ChangeCameraSettings(int32 PresetIndex)
 }
 
 
+// Loads presets from data table.
 void AMovableCamera::LoadPresetsFromDataTable()
 {
+    // If preset data table exist, do this..
     if (PresetDataTable)
     {
         static const FString ContextString(TEXT("Camera Preset Data Table"));
@@ -250,7 +223,7 @@ void AMovableCamera::LoadPresetsFromDataTable()
 
             if (Preset)
             {
-                // Add the struct to your CameraPresets array
+                // Add the struct to CameraPresets array, simplifies process of setting presets.
                 CameraPresets.Add(*Preset);
             }
         }
