@@ -51,7 +51,7 @@ public:
     UPROPERTY(EditAnywhere, Category = "Camera Tweaking")
         bool IncludeMovement;                       // Include rotation estimation boolean.
     
-    // Movement modifiers XYZ.
+    // TODO: CHANGE Movement modifiers XYZ.
     UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Movement")
         float XMovementSensitivity;
     UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Movement")
@@ -67,7 +67,7 @@ public:
     UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Rotation")
         float ZRotationSensitivity;                   // Not in use.
 
-    // FOV modifiers.
+    // TODO: CHANGE FOV modifiers.
     UPROPERTY(EditAnywhere, Category = "Camera Tweaking|FOV")
         bool FOVEnabled;
     UPROPERTY(EditAnywhere, Category = "Camera Tweaking|FOV")
@@ -95,9 +95,10 @@ private:
     float CX;
     float CY;
 
-
+    // Function for updating the user postion 
     void UpdatePosition();
 
+    // Funcitons for calulating the change for x and y axis
     float TranslateX(float x_opencv);
     float TranslateY(float y_opencv);
 };
