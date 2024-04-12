@@ -150,3 +150,48 @@ float  AMovableCamera::TranslateY(float y_opencv) {
         return WidthUE / 2 - 20;
     return res;
 };
+
+void AMovableCamera::ChangeCameraSettings(int32 PresetIndex)
+{
+    if (CameraPresets.IsValidIndex(PresetIndex))
+    {
+        FCameraPreset Preset = CameraPresets[PresetIndex];
+
+        // Set the camera properties based on the preset
+        IncludeRotation = Preset.IncRot;
+        IncludeMovement = Preset.IncMov;
+        FOVEnabled = Preset.IncFov;
+
+        XMovementSensitivity = Preset.XMoveSen;
+        YMovementSensitivity = Preset.YMoveSen;
+        ZMovementSensitivity = Preset.ZMoveSen;
+
+        XRotationSensitivity = Preset.XRotSen;
+        YRotationSensitivity = Preset.YRotSen;
+        ZRotationSensitivity = Preset.ZRotSen;
+
+        FOVSensitivity = Preset.FOVSen;
+    }
+}
+
+
+void AMovableCamera::LoadPresetsFromDataTable()
+{
+    if (PresetDataTable)
+    {
+        static const FString ContextString(TEXT("Camera Preset Data Table"));
+
+        // Iterate over each row in the data table
+        for (auto& RowName : PresetDataTable->GetRowNames())
+        {
+            // Retrieve each row as an FCameraPreset struct
+            FCameraPreset* Preset = PresetDataTable->FindRow<FCameraPreset>(RowName, ContextString, true);
+
+            if (Preset)
+            {
+                // Add the struct to your CameraPresets array
+                CameraPresets.Add(*Preset);
+            }
+        }
+    }
+}
