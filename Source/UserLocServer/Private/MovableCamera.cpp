@@ -115,8 +115,6 @@ void AMovableCamera::ChangeCameraSettings(int32 PresetIndex)
         ZRotationSensitivity = Preset.ZRotSen;
 
         FOVSensitivity = Preset.FOVSen;
-        UE_LOG(LogTemp, Warning, TEXT("We in settings!"));
-
     }
 }
 
@@ -139,9 +137,4 @@ void AMovableCamera::LoadPresetsFromDataTable()
             }
         }
     }
-}
-
-void AMovableCamera::Log()
-{
-    UE_LOG(LogTemp, Warning, TEXT("We Logging!"));
 }
