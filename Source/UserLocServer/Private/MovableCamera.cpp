@@ -44,8 +44,8 @@ AMovableCamera::AMovableCamera()
     // SCALAR = MAX_WIDTH_UE / FRAME_WIDTH_OPENCV
     // Change to the correct scale of values 
     // Note that it may be to much movement. Take 80% of it to take into account the wall
-    Scalar_X = (WidthUE / 480.0f) * 0.80f;
-    Scalar_Y = (HeightUE / 480.0f) * 0.80f;
+    Scalar_X = (WidthUE / 480.0f) * 0.50f;
+    Scalar_Y = (HeightUE / 480.0f) * 0.70f;
     CX = 320.0f;    // Retrive from camera-center.py
     CY = 240.0f;    // Retrive from camera-center.py
 
@@ -187,5 +187,72 @@ void AMovableCamera::UpdatePosition()
         // Calulating the new fov value and changing it 
         float new_fov = this->FOV(z_opencv);
         CameraComponent->SetFieldOfView(new_fov);
+    }
+}
+
+
+float  AMovableCamera::TranslateX(float x_opencv) {
+    // Calculate the x translation 
+    float res = (((2 * CX * x_opencv - 2 * CX) / FocalLength) * Scalar_X);
+
+    // Use half of the set width as a maximum + padding based on the wall
+    if (abs(res) > (WidthUE / 2 - 20))
+        return WidthUE / 2 - 20; 
+    return res; 
+};
+
+
+float  AMovableCamera::TranslateY(float y_opencv) {
+    // Calculate the y translation 
+    float res = (((2 * CY * y_opencv - 2 * CY) / FocalLength) * Scalar_Y);
+
+    // Use half of the set height as a maximum + padding based on the wall
+    if (abs(res) > (WidthUE / 2 - 20))
+        return WidthUE / 2 - 20;
+    return res;
+};
+
+void AMovableCamera::ChangeCameraSettings(int32 PresetIndex)
+{
+    if (CameraPresets.IsValidIndex(PresetIndex))
+    {
+        FCameraPreset Preset = CameraPresets[PresetIndex];
+
+        // Set the camera properties based on the preset
+        IncludeRotation = Preset.IncRot;
+        IncludeMovement = Preset.IncMov;
+        FOVEnabled = Preset.IncFov;
+
+        XMovementSensitivity = Preset.XMoveSen;
+        YMovementSensitivity = Preset.YMoveSen;
+        ZMovementSensitivity = Preset.ZMoveSen;
+
+        XRotationSensitivity = Preset.XRotSen;
+        YRotationSensitivity = Preset.YRotSen;
+        ZRotationSensitivity = Preset.ZRotSen;
+
+        FOVSensitivity = Preset.FOVSen;
+    }
+}
+
+
+void AMovableCamera::LoadPresetsFromDataTable()
+{
+    if (PresetDataTable)
+    {
+        static const FString ContextString(TEXT("Camera Preset Data Table"));
+
+        // Iterate over each row in the data table
+        for (auto& RowName : PresetDataTable->GetRowNames())
+        {
+            // Retrieve each row as an FCameraPreset struct
+            FCameraPreset* Preset = PresetDataTable->FindRow<FCameraPreset>(RowName, ContextString, true);
+
+            if (Preset)
+            {
+                // Add the struct to your CameraPresets array
+                CameraPresets.Add(*Preset);
+            }
+        }
     }
 }

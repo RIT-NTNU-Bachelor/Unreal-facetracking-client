@@ -8,7 +8,44 @@
 #include "HeadTracking.h"
 #include "GameFramework/Pawn.h"
 #include <iostream>
+#include "Engine/DataTable.h"
 #include "MovableCamera.generated.h"
+
+USTRUCT(BlueprintType)
+struct FCameraPreset : public FTableRowBase
+{
+    GENERATED_BODY()
+
+public:
+    /** including rotation or not **/
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        bool IncRot;
+    /** include movement or not **/
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        bool IncMov;
+
+    /** XYZ movement sensitivity modifiers **/
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        float XMoveSen;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        float YMoveSen;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        float ZMoveSen;
+
+    /** XYZ rotation sensitivity modifiers **/
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        float XRotSen;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        float YRotSen;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        float ZRotSen;
+
+    /** fov enabler and sensitivity modifiers **/
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        bool IncFov;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        float FOVSen;
+};
 
 UCLASS()
 class USERLOCSERVER_API AMovableCamera : public APawn
@@ -18,7 +55,7 @@ class USERLOCSERVER_API AMovableCamera : public APawn
 public:
 	// Sets default values for this pawn's properties
 	AMovableCamera();
-	
+
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Head Tracking (Server)")
         UHeadTracking* HeadTrackingComponent;
 
@@ -34,8 +71,15 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-    // Preset modifier in UE.
-   // Todo
+    /** Preset array in UE. **/
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Tweaking")
+        TArray<FCameraPreset> CameraPresets;
+
+    /** Preset reference to Data table **/
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Tweaking")
+        UDataTable* PresetDataTable;
+
+    UFUNCTION(BlueprintCallable) void ChangeCameraSettings(int32 PresetIndex);
 
    // Start location modifiers in UE.
     UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Transform")
@@ -73,6 +117,7 @@ public:
     UPROPERTY(EditAnywhere, Category = "Camera Tweaking|FOV")
         float FOVSensitivity;
 
+    void LoadPresetsFromDataTable();
 
 private:
     FVector newLocation;
