@@ -29,6 +29,22 @@ AMovableCamera::AMovableCamera()
     YRotationSensitivity = 0.1f;
     ZRotationSensitivity = 0.0f;
 
+
+    // Setting values for X and Y translation
+    // Focal length of the camera
+    FocalLength = 635.0;    // Get Focal Length from camera specs
+    WidthUE = 600.0f;       // Measure within Unreal Editor 
+    HeightUE = 400.0f;      // Measure within Unreal Editor 
+
+
+    // SCALAR = MAX_WIDTH_UE / FRAME_WIDTH_OPENCV
+    // Change to the correct scale of values 
+    // Note that it may be to much movement. Take 80% of it to take into account the wall
+    Scalar_X = (WidthUE / 480.0f) * 0.50f;
+    Scalar_Y = (HeightUE / 480.0f) * 0.70f;
+    CX = 320.0f;    // Retrive from camera-center.py
+    CY = 240.0f;    // Retrive from camera-center.py
+
     newLocation = FVector();
 }
 
@@ -62,26 +78,36 @@ void AMovableCamera::Tick(float DeltaTime)
     UpdatePosition();
 }
 
+
+float AMovableCamera::FOV(float z) {
+    // Constants that can be tweaked 
+    float L = 30.0f;
+    float C = 70.0f;
+    float k = 0.03f;
+    float z0 = 70.0f;
+    UE_LOG(LogTemp, Warning, TEXT("FOV Z CORD: %f"), z);
+
+    // Returning the result of the sigmoid calculation 
+    float result = L / (1 + exp(( k * (z - z0)))) + C;
+    return result;
+}
+
 void AMovableCamera::UpdatePosition()
 {
     FVector LastKnownPosition = StartLocation;
     FRotator LastKnownRotation = StartDirection;
-    float FOVmax = 120;
-    float FOVmin = 50;
-    float ZFov;
-    float ZLimit = 250.0f;
 
     HeadTrackingComponent->UpdateHeadPosition(newLocation);
 
     // New position of the camera after handling as FVector, the standard format of coordinates.
     if (IncludeMovement)
     {
-        X = newLocation.X * XMovementSensitivity;
-        Y = newLocation.Y * YMovementSensitivity;
+        X = TranslateX(newLocation.X);
+        Y = TranslateY(newLocation.Y);
         Z = newLocation.Z * ZMovementSensitivity;
-        if (Z < 0 && abs(Z) > ZLimit) Z = -ZLimit;
         
-        LastKnownPosition = StartLocation + FVector(Z, X, Y);
+        // Translating the cordinates relative to the cameras axis 
+        LastKnownPosition = StartLocation + FVector(Z, -X, -Y);
         CameraComponent->SetRelativeLocation(LastKnownPosition); // Sets new position in the world.
         UE_LOG(LogTemp, Warning, TEXT("X: %f, Y: %f, Z: %f"), X, Y, Z);
     }
@@ -96,18 +122,76 @@ void AMovableCamera::UpdatePosition()
 
     // Option to include or remove fov.
     if (HeadTrackingComponent->ZAxis && FOVEnabled)
-    {
-        ZFov = abs((-newLocation.Z / FOVSensitivity) + 80.0f);
+    {   
+        float new_fov = this->FOV(newLocation.Z + HeadTrackingComponent->CameraCentering.Z);
+        CameraComponent->SetFieldOfView(new_fov);
+        UE_LOG(LogTemp, Warning, TEXT("FOV: %f"), new_fov);
+    }
+}
 
-        if (ZFov < FOVmin)
+
+float  AMovableCamera::TranslateX(float x_opencv) {
+    // Calculate the x translation 
+    float res = (((2 * CX * x_opencv - 2 * CX) / FocalLength) * Scalar_X);
+
+    // Use half of the set width as a maximum + padding based on the wall
+    if (abs(res) > (WidthUE / 2 - 20))
+        return WidthUE / 2 - 20; 
+    return res; 
+};
+
+
+float  AMovableCamera::TranslateY(float y_opencv) {
+    // Calculate the y translation 
+    float res = (((2 * CY * y_opencv - 2 * CY) / FocalLength) * Scalar_Y);
+
+    // Use half of the set height as a maximum + padding based on the wall
+    if (abs(res) > (WidthUE / 2 - 20))
+        return WidthUE / 2 - 20;
+    return res;
+};
+
+void AMovableCamera::ChangeCameraSettings(int32 PresetIndex)
+{
+    if (CameraPresets.IsValidIndex(PresetIndex))
+    {
+        FCameraPreset Preset = CameraPresets[PresetIndex];
+
+        // Set the camera properties based on the preset
+        IncludeRotation = Preset.IncRot;
+        IncludeMovement = Preset.IncMov;
+        FOVEnabled = Preset.IncFov;
+
+        XMovementSensitivity = Preset.XMoveSen;
+        YMovementSensitivity = Preset.YMoveSen;
+        ZMovementSensitivity = Preset.ZMoveSen;
+
+        XRotationSensitivity = Preset.XRotSen;
+        YRotationSensitivity = Preset.YRotSen;
+        ZRotationSensitivity = Preset.ZRotSen;
+
+        FOVSensitivity = Preset.FOVSen;
+    }
+}
+
+
+void AMovableCamera::LoadPresetsFromDataTable()
+{
+    if (PresetDataTable)
+    {
+        static const FString ContextString(TEXT("Camera Preset Data Table"));
+
+        // Iterate over each row in the data table
+        for (auto& RowName : PresetDataTable->GetRowNames())
         {
-            ZFov = FOVmin;
+            // Retrieve each row as an FCameraPreset struct
+            FCameraPreset* Preset = PresetDataTable->FindRow<FCameraPreset>(RowName, ContextString, true);
+
+            if (Preset)
+            {
+                // Add the struct to your CameraPresets array
+                CameraPresets.Add(*Preset);
+            }
         }
-        else if (ZFov > FOVmax)
-        {
-            ZFov = FOVmax;
-        }
-        CameraComponent->SetFieldOfView(ZFov);
-        UE_LOG(LogTemp, Warning, TEXT("FOV: %f"), ZFov);
     }
 }
