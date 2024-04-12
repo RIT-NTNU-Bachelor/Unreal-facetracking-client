@@ -24,7 +24,7 @@ bool UHeadTracking::StartHeadTracking()
     FString TheIP = "127.0.0.1";        // Change this to your server's IP address.
     int32 ThePort = 5052;               // Change this to your server's port.
 
-    // If the UDPReceiverComponent is initialized, do this..
+    // If the UDPReceiverComponent is initialized
     if (UDPReceiverComponent)
     {
         // StartUDPReceiver is a method within UUDPReceiver
@@ -61,13 +61,17 @@ void UHeadTracking::UpdateHeadPosition(FVector& newLocation)
 
     if (UDPReceiverComponent->ReceiveUDPData(Data))
     {
+        // Data should be have retrived, but if not the tracking component does nothing 
         if (Data.IsEmpty())
         {
             return;
         }
 
-        // Assuming the data format is: '(X,Y)'. There is a b first, but not read in this context.
+        // Assuming the data format is: '(X,Y,Z)' 
+        // Gets the data as bytes 
         Data = Data.RightChop(1).LeftChop(1);    // Removes '( )'
+
+        // Parse the data into a list of points 
         TArray<FString> Points;
         Data.ParseIntoArray(Points, TEXT(","), true);
         
@@ -77,7 +81,7 @@ void UHeadTracking::UpdateHeadPosition(FVector& newLocation)
             Y = (FCString::Atof(*Points[1]) - CameraCentering.Y); // Parses Y into float from FCString.
             Z = (Points.Num() > 2 && ZAxis) ? (FCString::Atof(*Points[2]) - CameraCentering.Z) : 0.0f;
 
-            // Adds the data to a list to find average of X and Y. Smooths the movement.
+            //  Adds the data to a list to find average of X and Y. Smooths the movement.
             if (UseSmoothing)
             {
                 XList.Add(X);
