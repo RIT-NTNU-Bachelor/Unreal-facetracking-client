@@ -120,6 +120,7 @@ public:
     UPROPERTY(EditAnywhere, Category = "Camera Tweaking|FOV")
         float FOVSensitivity;
 
+    UFUNCTION(BlueprintCallable) void Log();
 private:
     FVector newLocation;
 
