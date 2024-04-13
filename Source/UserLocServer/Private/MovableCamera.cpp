@@ -130,6 +130,36 @@ float  AMovableCamera::TranslateY(float y_opencv) {
     return new_y;
 };
 
+
+/*
+    Function that calulates the roll of the camera.
+    Takes the change in x position. 
+
+    Returns the new roll
+
+*/
+float AMovableCamera::rotation_roll(float x_change) {
+    float droll = 0.09; 
+    float c = 15;
+
+    return droll * (x_change - WidthUE / 2) + c;
+};
+
+
+/*
+    Function that calulates the pitch of the camera.
+    Takes the change in y position.
+
+    Returns the new pitch
+
+*/
+float AMovableCamera::rotation_pitch(float y_change) {
+    float droll = 0.06;
+    float c = 15;
+
+    return droll * (y_change - HeightUE / 2) + c;
+};
+
 // Update the position of the movable camera, called each tick.
 void AMovableCamera::UpdatePosition()
 {
@@ -160,11 +190,13 @@ void AMovableCamera::UpdatePosition()
     if (IncludeRotation)
     {
         // New position of the camera after handling as FRotator, the standard format of rotation.
-        LastKnownRotation = StartDirection + FRotator(
-            newLocation.Y * YRotationSensitivity, 
-            newLocation.X * XRotationSensitivity, 
-            newLocation.Z * ZRotationSensitivity
-        );
+        float pitch = rotation_pitch(newLocation.Y);
+        float roll = rotation_roll(newLocation.X);
+
+        UE_LOG(LogTemp, Warning, TEXT("Pitch(Y): %f, Roll(X): %f"), pitch, roll);
+
+
+        LastKnownRotation = StartDirection + FRotator(pitch, roll, 0);
         // Sets new rotation relative to the world.
         CameraComponent->SetWorldRotation(LastKnownRotation); 
     }
