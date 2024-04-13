@@ -144,4 +144,7 @@ private:
     // Funcitons for calulating the change for x and y axis
     float TranslateX(float x_opencv);
     float TranslateY(float y_opencv);
+
+
+    FMatrix UpdateFrustrum(float x, float y, float z); 
 };

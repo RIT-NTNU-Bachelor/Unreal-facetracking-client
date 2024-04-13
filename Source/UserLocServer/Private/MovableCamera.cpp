@@ -130,6 +130,65 @@ float  AMovableCamera::TranslateY(float y_opencv) {
     return new_y;
 };
 
+
+FMatrix AMovableCamera::UpdateFrustrum(float x, float y, float z)
+{
+    float headX = x / (CX * 2);
+    float headY = y / (CY * 2);
+    float headDist = z;
+    float screenAspect = CX / CY;
+
+    float nearPlane = 1.0f;
+    FMatrix resultM = FMatrix::Identity;
+
+    // Populate the perspective matrix
+    resultM.M[0][0] = nearPlane / (-(.5f * screenAspect - headX) / headDist);
+    resultM.M[1][1] = nearPlane / ((.5f * screenAspect - headX) / headDist);
+    resultM.M[2][0] = (.5f - headY) / headDist;
+    resultM.M[2][1] = (.5f + headY) / headDist;
+    resultM.M[2][2] = 0.0f;
+    resultM.M[2][3] = 1.0f;
+    resultM.M[3][2] = nearPlane;
+    resultM.M[3][3] = 0.0f;
+
+    // Apply magic fix
+    float result[4][4];
+    for (int32 i = 0; i < 4; ++i)
+    {
+        for (int32 j = 0; j < 4; ++j)
+        {
+            result[i][j] = resultM.M[i][j];
+        }
+    }
+    // Apply fix
+    result[2][2] = 0.0f;
+    result[3][0] = 0.0f;
+    result[3][1] = 0.0f;
+    result[3][2] = nearPlane;
+
+    // Scale matrix
+    float scaleFactor = 1.0f / result[0][0];
+    for (int32 i = 0; i < 4; ++i)
+    {
+        for (int32 j = 0; j < 4; ++j)
+        {
+            result[i][j] *= scaleFactor;
+        }
+    }
+
+    // Convert result back to FMatrix
+    for (int32 i = 0; i < 4; ++i)
+    {
+        for (int32 j = 0; j < 4; ++j)
+        {
+            resultM.M[i][j] = result[i][j];
+        }
+    }
+
+    return resultM;
+}
+
+
 // Update the position of the movable camera, called each tick.
 void AMovableCamera::UpdatePosition()
 {
