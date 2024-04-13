@@ -154,10 +154,10 @@ float AMovableCamera::rotation_roll(float x_change) {
 
 */
 float AMovableCamera::rotation_pitch(float y_change) {
-    float droll = 0.06;
+    float dpitch = 0.06;
     float c = 15;
 
-    return droll * (y_change - HeightUE / 2) + c;
+    return dpitch * (y_change - HeightUE / 2) + c;
 };
 
 // Update the position of the movable camera, called each tick.
