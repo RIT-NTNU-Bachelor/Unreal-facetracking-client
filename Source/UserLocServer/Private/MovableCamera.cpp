@@ -271,8 +271,8 @@ bool AMovableCamera::AddDebugMessageIfUserOutOfView(bool has_coords) {
     else {
         // A frame with the user 
         // Reset all varaibles and remove any debug messages 
-        bHasDebugMessage = false; 
-        GEngine->ClearOnScreenDebugMessages();
+        if (bHasDebugMessage) GEngine->ClearOnScreenDebugMessages();
+        bHasDebugMessage = false;
         BlurCounter = 0; 
     }
     return false; 
