@@ -18,6 +18,8 @@ AMovableCamera::AMovableCamera()
     FOVSensitivity = 0.03f;
     XMovementSensitivity = 0.5f;
     YMovementSensitivity = 0.7f;
+    PitchSensitivity = 0.06f;
+    YawSensitivity = 0.09f;
 
     // Setting values for X and Y translation
     // Focal length of the camera
@@ -155,7 +157,7 @@ float AMovableCamera::rotation_yaw(float x_change, float z_change) {
 */
 float AMovableCamera::rotation_pitch(float y_change, float z_change) {
     float c = 10;
-    float dpitch = 0.06 - z_change / 1900;
+    float dpitch = PitchSensitivity;
     return dpitch * (y_change - HeightUE / 2) + c;
 };
 
@@ -193,12 +195,12 @@ void AMovableCamera::UpdatePosition()
     {
         // New position of the camera after handling as FRotator, the standard format of rotation.
         float pitch = rotation_pitch(newLocation.Y, z_opencv);
-        float roll = rotation_roll(newLocation.X, z_opencv);
+        float yaw = rotation_yaw(newLocation.X, z_opencv);
 
-        UE_LOG(LogTemp, Warning, TEXT("Pitch(Y): %f, Roll(X): %f, Z: %f"), pitch, roll, z_opencv);
+        UE_LOG(LogTemp, Warning, TEXT("Pitch(Y): %f, Roll(X): %f, Z: %f"), pitch, yaw, z_opencv);
 
 
-        LastKnownRotation = StartDirection + FRotator(pitch, roll, 0);
+        LastKnownRotation = StartDirection + FRotator(pitch, yaw, 0);
         // Sets new rotation relative to the world.
         CameraComponent->SetWorldRotation(LastKnownRotation); 
     }
@@ -231,9 +233,8 @@ void AMovableCamera::ChangeCameraSettings(int32 PresetIndex)
         YMovementSensitivity = Preset.YMoveSen;
         ZMovementSensitivity = Preset.ZMoveSen;
 
-        XRotationSensitivity = Preset.XRotSen;
-        YRotationSensitivity = Preset.YRotSen;
-        ZRotationSensitivity = Preset.ZRotSen;
+        YawSensitivity = Preset.XRotSen;
+        PitchSensitivity = Preset.YRotSen;
 
         FOVSensitivity = Preset.FOVSen;
     }

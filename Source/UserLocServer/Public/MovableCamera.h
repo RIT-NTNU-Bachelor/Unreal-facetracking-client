@@ -102,11 +102,9 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Tweaking")
         bool IncludeRotation;
     UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Rotation")
-        float XRotationSensitivity;
+        float YawSensitivity;
     UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Rotation")
-        float YRotationSensitivity;
-    UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Rotation")
-        float ZRotationSensitivity;
+        float PitchSensitivity;
 
     // FOV modifiers, allows for enabling/disabling fov, and change the sensitivity.
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Tweaking|FOV")
