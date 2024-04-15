@@ -206,6 +206,17 @@ void AMovableCamera::ChangeCameraSettings(int32 PresetIndex)
     }
 }
 
+void AMovableCamera::CenterCamera(FVector NewCenter)
+{
+    StartLocation = NewCenter;
+}
+
+void AMovableCamera::SetLevelSpecificSettings(FLevelSpecificSettings LevelSetting)
+{
+    StartLocation = LevelSetting.StartLoc;
+    StartDirection = LevelSetting.StartDir;
+}
+
 
 // Loads presets from data table.
 void AMovableCamera::LoadPresetsFromDataTable()
