@@ -137,8 +137,18 @@ void AMovableCamera::UpdatePosition()
     FVector LastKnownPosition = StartLocation;
     FRotator LastKnownRotation = StartDirection;
 
+    FVector LastLocation = FVector(newLocation.X, newLocation.Y, newLocation.Z);
+
     // Gets the face coordinates from the headtracking component.
     HeadTrackingComponent->GetFaceCoordinates(newLocation);
+
+    float BLUR_THRESHOLD = 0.001; 
+    if (abs(newLocation.X - LastLocation.X) < BLUR_THRESHOLD && abs(newLocation.Y - LastLocation.Y) < BLUR_THRESHOLD && abs(newLocation.Z - LastLocation.Z) < BLUR_THRESHOLD) {
+        UE_LOG(LogTemp, Warning, TEXT("BLUR"));
+        return;
+    }
+
+    UE_LOG(LogTemp, Warning, TEXT("NEW LOCATION: %f %f %f"), newLocation.X, newLocation.Y, newLocation.Z);
 
     // New position of the camera after handling as FVector, the standard format of coordinates.
     if (IncludeMovement)
