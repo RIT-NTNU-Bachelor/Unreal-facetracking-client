@@ -156,6 +156,12 @@ private:
     float CX;
     float CY;
 
+    float BlurCounter; 
+    bool bHasDebugMessage; 
+
+    // Function for telling the user that they are out of view 
+    bool AddDebugMessageIfUserOutOfView(bool has_coords); 
+
     // Function for updating the user postion 
     void UpdatePosition();
 

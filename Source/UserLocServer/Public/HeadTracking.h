@@ -33,7 +33,7 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Networking")
         UUDPReceiver* UDPReceiverComponent;
 
-    void GetFaceCoordinates(FVector&);
+    bool GetFaceCoordinates(FVector&);
 
     // Use smoothing or not when tracking head.
     UPROPERTY(EditAnywhere, Category = "Head Tracking (Server)")
