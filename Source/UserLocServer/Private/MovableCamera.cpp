@@ -37,6 +37,7 @@ AMovableCamera::AMovableCamera()
 
 
     BlurCounter = 0;
+    bHasDebugMessage = false; 
 
     // Initilize the new location as a vector 
     newLocation = FVector();
@@ -144,16 +145,26 @@ void AMovableCamera::UpdatePosition()
 
     // Gets the face coordinates from the headtracking component.
     bool bDidGetCoords = HeadTrackingComponent->GetFaceCoordinates(newLocation);
+    
 
     if (!bDidGetCoords){
         if (BlurCounter > 5) {
             UE_LOG(LogTemp, Warning, TEXT("BLUR"));
-            CameraComponent->SetFieldOfView(0); 
-            return;
+            if (!bHasDebugMessage) {
+                CameraComponent->SetFieldOfView(0); 
+                FString message = FString("Please move in the field of view");
+                GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::White, message, true, FVector2D(2.0f));
+                bHasDebugMessage = true;
+            }
+            return; 
+            
         }
+        GEngine->ClearOnScreenDebugMessages();
         BlurCounter += 1;
     }
     else {
+        bHasDebugMessage = false; 
+        GEngine->ClearOnScreenDebugMessages();
         BlurCounter -= 1; 
         BlurCounter = fmax(0, BlurCounter); 
     }

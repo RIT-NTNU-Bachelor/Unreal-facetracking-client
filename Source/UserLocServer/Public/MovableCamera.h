@@ -139,6 +139,7 @@ private:
     float CY;
 
     float BlurCounter; 
+    bool bHasDebugMessage; 
 
     // Function for updating the user postion 
     void UpdatePosition();
