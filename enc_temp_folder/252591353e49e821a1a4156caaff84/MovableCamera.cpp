@@ -84,6 +84,7 @@ float AMovableCamera::FOV(float z) {
     float L = 30.0f;
     float C = 70.0f;
     float z0 = 70.0f;
+    UE_LOG(LogTemp, Warning, TEXT("FOV Z CORD: %f"), z);
 
     // Returning the result of the sigmoid calculation 
     float result = L / (1 + exp((FOVSensitivity * (z - z0)))) + C;
@@ -140,7 +141,9 @@ float  AMovableCamera::TranslateY(float y_opencv) {
 */
 float AMovableCamera::rotation_roll(float x_change, float z_change) {
     float c = 10;
-    float droll = 0.09 - z_change / 1900;
+    float z_impact =  z_change / 1900;
+    float droll = 0.09 - z_impact;
+
     return droll * (x_change - WidthUE / 2) + c;
 };
 
@@ -155,7 +158,9 @@ float AMovableCamera::rotation_roll(float x_change, float z_change) {
 */
 float AMovableCamera::rotation_pitch(float y_change, float z_change) {
     float c = 10;
-    float dpitch = 0.06 - z_change / 1900;
+    float z_impact = z_change / 1900;
+    float dpitch = 0.06 - z_impact;
+
     return dpitch * (y_change - HeightUE / 2) + c;
 };
 
