@@ -35,6 +35,9 @@ AMovableCamera::AMovableCamera()
     Scalar_X = (WidthUE / 480.0f) * XMovementSensitivity;
     Scalar_Y = (HeightUE / 480.0f) * YMovementSensitivity;
 
+
+    BlurCounter = 0;
+
     // Initilize the new location as a vector 
     newLocation = FVector();
 }
@@ -140,12 +143,19 @@ void AMovableCamera::UpdatePosition()
     FVector LastLocation = FVector(newLocation.X, newLocation.Y, newLocation.Z);
 
     // Gets the face coordinates from the headtracking component.
-    HeadTrackingComponent->GetFaceCoordinates(newLocation);
+    bool bDidGetCoords = HeadTrackingComponent->GetFaceCoordinates(newLocation);
 
-    float BLUR_THRESHOLD = 0.001; 
-    if (abs(newLocation.X - LastLocation.X) < BLUR_THRESHOLD && abs(newLocation.Y - LastLocation.Y) < BLUR_THRESHOLD && abs(newLocation.Z - LastLocation.Z) < BLUR_THRESHOLD) {
-        UE_LOG(LogTemp, Warning, TEXT("BLUR"));
-        return;
+    if (!bDidGetCoords){
+        if (BlurCounter > 5) {
+            UE_LOG(LogTemp, Warning, TEXT("BLUR"));
+            CameraComponent->SetFieldOfView(0); 
+            return;
+        }
+        BlurCounter += 1;
+    }
+    else {
+        BlurCounter -= 1; 
+        BlurCounter = fmax(0, BlurCounter); 
     }
 
     UE_LOG(LogTemp, Warning, TEXT("NEW LOCATION: %f %f %f"), newLocation.X, newLocation.Y, newLocation.Z);

@@ -138,6 +138,8 @@ private:
     float CX;
     float CY;
 
+    float BlurCounter; 
+
     // Function for updating the user postion 
     void UpdatePosition();
 
