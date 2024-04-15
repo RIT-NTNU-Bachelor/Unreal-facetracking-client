@@ -131,17 +131,17 @@ float  AMovableCamera::TranslateY(float y_opencv) {
 
 
 /*
-    Function that calulates the roll of the camera.
+    Function that calulates the yaw of the camera.
     Takes the change in x position, and the estimated distance between the screen and the user (Z). 
     The distance has a minimal impact, due to logmaritic scale. This is because of the value range of Zs
 
-    Returns the new roll
+    Returns the new yaw
 
 */
-float AMovableCamera::rotation_roll(float x_change, float z_change) {
+float AMovableCamera::rotation_yaw(float x_change, float z_change) {
     float c = 10;
-    float droll = 0.09 - z_change / 1900;
-    return droll * (x_change - WidthUE / 2) + c;
+    float dyaw = 0.09 - z_change / 1900;
+    return dyaw * (x_change - WidthUE / 2) + c;
 };
 
 
