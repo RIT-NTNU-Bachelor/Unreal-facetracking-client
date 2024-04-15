@@ -146,6 +146,6 @@ private:
     float TranslateY(float y_opencv);
 
     //Function for rotation 
-    float rotation_roll(float x_change);
-    float rotation_pitch(float y_change);
+    float rotation_roll(float x_change, float z_change);
+    float rotation_pitch(float y_change, float z_change);
 };

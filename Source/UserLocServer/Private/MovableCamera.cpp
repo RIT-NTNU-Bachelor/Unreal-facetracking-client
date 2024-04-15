@@ -133,14 +133,15 @@ float  AMovableCamera::TranslateY(float y_opencv) {
 
 /*
     Function that calulates the roll of the camera.
-    Takes the change in x position. 
+    Takes the change in x position, and the estimated distance between the screen and the user, z
 
     Returns the new roll
 
 */
-float AMovableCamera::rotation_roll(float x_change) {
-    float droll = 0.09; 
+float AMovableCamera::rotation_roll(float x_change, float z_change) {
     float c = 15;
+    float z_impact = log(z_change + 1) + 1;
+    float droll = 0.09 / z_impact;
 
     return droll * (x_change - WidthUE / 2) + c;
 };
@@ -148,14 +149,15 @@ float AMovableCamera::rotation_roll(float x_change) {
 
 /*
     Function that calulates the pitch of the camera.
-    Takes the change in y position.
+    Takes the change in y position, and the estimated distance between the screen and the user, z.
 
     Returns the new pitch
 
 */
-float AMovableCamera::rotation_pitch(float y_change) {
-    float dpitch = 0.06;
+float AMovableCamera::rotation_pitch(float y_change, float z_change) {
     float c = 15;
+    float z_impact = log(z_change + 1) + 1;
+    float dpitch = 0.06 / z_impact;
 
     return dpitch * (y_change - HeightUE / 2) + c;
 };
@@ -190,8 +192,8 @@ void AMovableCamera::UpdatePosition()
     if (IncludeRotation)
     {
         // New position of the camera after handling as FRotator, the standard format of rotation.
-        float pitch = rotation_pitch(newLocation.Y);
-        float roll = rotation_roll(newLocation.X);
+        float pitch = rotation_pitch(newLocation.Y, newLocation.Z);
+        float roll = rotation_roll(newLocation.X, newLocation.Z);
 
         UE_LOG(LogTemp, Warning, TEXT("Pitch(Y): %f, Roll(X): %f"), pitch, roll);
 
