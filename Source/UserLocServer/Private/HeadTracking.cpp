@@ -52,10 +52,17 @@ void UHeadTracking::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
     GetFaceCoordinates(newLocation);
 }
 
+void UHeadTracking::ChangeHeadTrackingPreset(FHeadTrackingPresets Preset)
+{
+    UseSmoothing = Preset.SmoothingBool;
+    SmoothingBufferSize = Preset.SmoothingAmount;
+    ZAxis = Preset.ZBool;
+}
+
 /*
 * Updates head position based on the UDP component data.
 */
-void UHeadTracking::GetFaceCoordinates(FVector& newLocation)
+bool UHeadTracking::GetFaceCoordinates(FVector& newLocation)
 {
     FString Data = "";
 
@@ -64,7 +71,7 @@ void UHeadTracking::GetFaceCoordinates(FVector& newLocation)
         // Data should be have retrived, but if not the tracking component does nothing 
         if (Data.IsEmpty())
         {
-            return;
+            return false;
         }
 
         // Assuming the data format is: '(X,Y,Z)' 
@@ -97,8 +104,11 @@ void UHeadTracking::GetFaceCoordinates(FVector& newLocation)
                 Z = ZAxis ? CalculateAverage(ZList) : Z;
             }
             newLocation = FVector(X, Y, Z);
+            return true; 
         } 
     }
+
+    return false; 
 }
 
 /*

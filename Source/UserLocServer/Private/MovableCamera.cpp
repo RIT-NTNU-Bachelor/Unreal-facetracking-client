@@ -38,6 +38,10 @@ AMovableCamera::AMovableCamera()
     Scalar_X = (WidthUE / 480.0f) * XMovementSensitivity;
     Scalar_Y = (HeightUE / 480.0f) * YMovementSensitivity;
 
+
+    BlurCounter = 0;
+    bHasDebugMessage = false; 
+
     // Initilize the new location as a vector 
     newLocation = FVector();
 }
@@ -177,8 +181,16 @@ void AMovableCamera::UpdatePosition()
     FVector LastKnownPosition = StartLocation;
     FRotator LastKnownRotation = StartDirection;
 
+    FVector LastLocation = FVector(newLocation.X, newLocation.Y, newLocation.Z);
+
     // Gets the face coordinates from the headtracking component.
-    HeadTrackingComponent->GetFaceCoordinates(newLocation);
+    bool bDidGetCoords = HeadTrackingComponent->GetFaceCoordinates(newLocation);
+
+    // Check if we need to tell the user if they are out of view by blocking the main thread of the program  
+    if (AddDebugMessageIfUserOutOfView(bDidGetCoords)) return; // No need to update the postion. Exit the function
+
+
+    UE_LOG(LogTemp, Warning, TEXT("NEW LOCATION: %f %f %f"), newLocation.X, newLocation.Y, newLocation.Z);
 
     // New position of the camera after handling as FVector, the standard format of coordinates.
     if (IncludeMovement)
@@ -249,6 +261,17 @@ void AMovableCamera::ChangeCameraSettings(int32 PresetIndex)
     }
 }
 
+void AMovableCamera::CenterCamera(FVector NewCenter)
+{
+    StartLocation = NewCenter;
+}
+
+void AMovableCamera::SetLevelSpecificSettings(FLevelSpecificSettings LevelSetting)
+{
+    StartLocation = LevelSetting.StartLoc;
+    StartDirection = LevelSetting.StartDir;
+}
+
 
 // Loads presets from data table.
 void AMovableCamera::LoadPresetsFromDataTable()
@@ -272,3 +295,39 @@ void AMovableCamera::LoadPresetsFromDataTable()
         }
     }
 }
+
+/*
+    Function for printing a message to the user is out of view of the camera.
+    Will set the field of view to zero and add the message to the screen telling the user to move back into frame. 
+
+    Returns true if the user is out of view 
+*/
+bool AMovableCamera::AddDebugMessageIfUserOutOfView(bool has_coords) {
+    if (!has_coords){
+        // Has to go at least 5 ticks without seing the user in a row. 
+        if (BlurCounter > 5) {
+            // Prints the debug message to the screen
+            if (!bHasDebugMessage) {
+                CameraComponent->SetFieldOfView(0); 
+                FString message = FString("\nYou are out of view from the camera, or OpenCV server is not running.\nPlease move in the field of view of the camera...");
+                GEngine->AddOnScreenDebugMessage(-1, 20.0f, FColor::White, message, true, FVector2D(2.5f));
+                bHasDebugMessage = true;
+            }
+            return true; 
+            
+        }
+        // Clear message form the screen
+        GEngine->ClearOnScreenDebugMessages();
+
+        // Increment the amount of frames the user was out of view. 
+        BlurCounter += 1;
+    }
+    else {
+        // A frame with the user 
+        // Reset all varaibles and remove any debug messages 
+        if (bHasDebugMessage) GEngine->ClearOnScreenDebugMessages();
+        bHasDebugMessage = false;
+        BlurCounter = 0; 
+    }
+    return false; 
+};
