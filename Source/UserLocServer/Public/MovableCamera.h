@@ -49,6 +49,18 @@ public:
         float FOVSen;
 };
 
+USTRUCT(BlueprintType)
+struct FLevelSpecificSettings : public FTableRowBase
+{
+    GENERATED_BODY()
+
+public:
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        FVector StartLoc;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        FRotator StartDir;
+};
+
 UCLASS()
 class USERLOCSERVER_API AMovableCamera : public APawn
 {
@@ -80,7 +92,13 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Tweaking")
         UDataTable* PresetDataTable;
 
+    // Reference to level settings data table.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Tweaking")
+        UDataTable* LevelSpecificSettings;
+
     UFUNCTION(BlueprintCallable) void ChangeCameraSettings(int32 PresetIndex);
+    UFUNCTION(BlueprintCallable) void CenterCamera(FVector NewCenter);
+    UFUNCTION(BlueprintCallable) void SetLevelSpecificSettings(FLevelSpecificSettings LevelSetting);
 
    // Start location and direction modifiers in UE, this has to be changed for the actual camera placement.
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Tweaking|Transform")
@@ -101,11 +119,11 @@ public:
     // Rotation modifiers, allows for enabling/disabling rotation, and change of sensitivity for each axis.
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Tweaking")
         bool IncludeRotation;
-    UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Rotation")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Tweaking|Rotation")
         float XRotationSensitivity;
-    UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Rotation")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Tweaking|Rotation")
         float YRotationSensitivity;
-    UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Rotation")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Tweaking|Rotation")
         float ZRotationSensitivity;
 
     // FOV modifiers, allows for enabling/disabling fov, and change the sensitivity.
