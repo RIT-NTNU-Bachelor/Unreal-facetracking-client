@@ -119,9 +119,9 @@ public:
     // Rotation modifiers, allows for enabling/disabling rotation, and change of sensitivity for each axis.
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Tweaking")
         bool IncludeRotation;
-    UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Rotation")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Tweaking|Rotation")
         float YawSensitivity;
-    UPROPERTY(EditAnywhere, Category = "Camera Tweaking|Rotation")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Tweaking|Rotation")
         float PitchSensitivity;
 
     // FOV modifiers, allows for enabling/disabling fov, and change the sensitivity.
