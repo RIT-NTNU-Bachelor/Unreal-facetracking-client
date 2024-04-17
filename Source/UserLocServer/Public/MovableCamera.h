@@ -131,6 +131,7 @@ private:
     float Scalar_Y;
     float WidthUE; 
     float HeightUE;
+    float MaxZ; 
 
     // Center position of OpenCV Frame
     float CX;

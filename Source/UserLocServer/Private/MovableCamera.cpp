@@ -18,14 +18,15 @@ AMovableCamera::AMovableCamera()
     FOVSensitivity = 0.03f;
     XMovementSensitivity = 0.5f;
     YMovementSensitivity = 0.7f;
-    PitchSensitivity = 0.06f;
-    YawSensitivity = 0.09f;
+    PitchSensitivity = 0.6f;
+    YawSensitivity = 0.9f;
 
     // Setting values for X and Y translation
     // Focal length of the camera
     FocalLength = 635.0;    // Get Focal Length from camera specs
     WidthUE = 600.0f;       // Measure within Unreal Editor 
     HeightUE = 400.0f;      // Measure within Unreal Editor 
+    MaxZ = 300.0f;          // Max depth the user is away from the camera. Recommend using 300 cm by default
 
     // SCALAR = MAX_WIDTH_UE / FRAME_WIDTH_OPENCV
     // Change to the correct scale of values 
@@ -134,23 +135,17 @@ float  AMovableCamera::TranslateY(float y_opencv) {
 
 /*
     Function that calulates the yaw of the camera.
-    Takes the change in x position, and the estimated distance between the screen and the user (Z). 
+    Takes the current yaw of the camera, change in x position, and the estimated distance between the screen and the user (Z). 
     The distance has a minimal impact, due to logmaritic scale. This is because of the value range of Zs
 
     Returns the new yaw
 
 */
 float AMovableCamera::rotation_yaw(float current_yaw, float x_change, float z_change) {
-    // Constants
-    float baseScale = 0.9; 
-    float maxZ = 300.0f; 
+    float depthScale = 1 / (1 + z_change / MaxZ); 
 
-
-    float depthScale = 1 / (1 + z_change / maxZ); 
-
-    float dyaw = baseScale * depthScale; 
+    float dyaw = YawSensitivity * depthScale; 
     float targetYaw = dyaw * x_change;
-
 
     float smoothedYaw = current_yaw + (targetYaw - current_yaw) * 0.1;
 
@@ -160,21 +155,16 @@ float AMovableCamera::rotation_yaw(float current_yaw, float x_change, float z_ch
 
 /*
     Function that calulates the pitch of the camera.
-    Takes the change in y position, and the estimated distance between the screen and the user (Z).
+    Takes the current pitch of the camera, change in y position, and the estimated distance between the screen and the user (Z).
     The distance has a minimal impact, due to logmaritic scale. This is because of the value range of Z  
 
     Returns the new pitch
 
 */
 float AMovableCamera::rotation_pitch(float current_pitch, float y_change, float z_change) {
-    // Constants
-    float baseScale = 0.6;
-    float maxZ = 300.0f;
+    float depthScale = 1 / (1 + z_change / MaxZ);
 
-
-    float depthScale = 1 / (1 + z_change / maxZ);
-
-    float dpitch = baseScale * depthScale;
+    float dpitch = PitchSensitivity * depthScale;
     float targetPitch = dpitch * y_change;
 
     return current_pitch + (targetPitch - current_pitch) * 0.1;
