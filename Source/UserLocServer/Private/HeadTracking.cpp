@@ -52,6 +52,13 @@ void UHeadTracking::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
     GetFaceCoordinates(newLocation);
 }
 
+void UHeadTracking::ChangeHeadTrackingPreset(FHeadTrackingPresets Preset)
+{
+    UseSmoothing = Preset.SmoothingBool;
+    SmoothingBufferSize = Preset.SmoothingAmount;
+    ZAxis = Preset.ZBool;
+}
+
 /*
 * Updates head position based on the UDP component data.
 */
