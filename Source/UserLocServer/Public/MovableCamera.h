@@ -120,11 +120,9 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Tweaking")
         bool IncludeRotation;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Tweaking|Rotation")
-        float XRotationSensitivity;
+        float YawSensitivity;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Tweaking|Rotation")
-        float YRotationSensitivity;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Tweaking|Rotation")
-        float ZRotationSensitivity;
+        float PitchSensitivity;
 
     // FOV modifiers, allows for enabling/disabling fov, and change the sensitivity.
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Tweaking|FOV")
@@ -151,6 +149,7 @@ private:
     float Scalar_Y;
     float WidthUE; 
     float HeightUE;
+    float MaxZ; 
 
     // Center position of OpenCV Frame
     float CX;
@@ -168,4 +167,8 @@ private:
     // Funcitons for calulating the change for x and y axis
     float TranslateX(float x_opencv);
     float TranslateY(float y_opencv);
+
+    //Function for rotation 
+    float rotation_yaw(float current_yaw, float x_change, float z_change);
+    float rotation_pitch(float current_roll, float y_change, float z_change);
 };

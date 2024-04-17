@@ -18,12 +18,15 @@ AMovableCamera::AMovableCamera()
     FOVSensitivity = 0.03f;
     XMovementSensitivity = 0.5f;
     YMovementSensitivity = 0.7f;
+    PitchSensitivity = 0.6f;
+    YawSensitivity = 0.9f;
 
     // Setting values for X and Y translation
     // Focal length of the camera
     FocalLength = 635.0;    // Get Focal Length from camera specs
     WidthUE = 600.0f;       // Measure within Unreal Editor 
     HeightUE = 400.0f;      // Measure within Unreal Editor 
+    MaxZ = 300.0f;          // Max depth the user is away from the camera. Recommend using 300 cm by default
 
     // SCALAR = MAX_WIDTH_UE / FRAME_WIDTH_OPENCV
     // Change to the correct scale of values 
@@ -88,7 +91,6 @@ float AMovableCamera::FOV(float z) {
     float L = 30.0f;
     float C = 70.0f;
     float z0 = 70.0f;
-    UE_LOG(LogTemp, Warning, TEXT("FOV Z CORD: %f"), z);
 
     // Returning the result of the sigmoid calculation 
     float result = L / (1 + exp((FOVSensitivity * (z - z0)))) + C;
@@ -134,6 +136,44 @@ float  AMovableCamera::TranslateY(float y_opencv) {
     return new_y;
 };
 
+
+/*
+    Function that calulates the yaw of the camera.
+    Takes the current yaw of the camera, change in x position, and the estimated distance between the screen and the user (Z). 
+    The distance has a minimal impact, due to logmaritic scale. This is because of the value range of Zs
+
+    Returns the new yaw
+
+*/
+float AMovableCamera::rotation_yaw(float current_yaw, float x_change, float z_change) {
+    float depthScale = 1 / (1 + z_change / MaxZ); 
+
+    float dyaw = YawSensitivity * depthScale; 
+    float targetYaw = dyaw * x_change;
+
+    float smoothedYaw = current_yaw + (targetYaw - current_yaw) * 0.1;
+
+    return smoothedYaw; 
+};
+
+
+/*
+    Function that calulates the pitch of the camera.
+    Takes the current pitch of the camera, change in y position, and the estimated distance between the screen and the user (Z).
+    The distance has a minimal impact, due to logmaritic scale. This is because of the value range of Z  
+
+    Returns the new pitch
+
+*/
+float AMovableCamera::rotation_pitch(float current_pitch, float y_change, float z_change) {
+    float depthScale = 1 / (1 + z_change / MaxZ);
+
+    float dpitch = PitchSensitivity * depthScale;
+    float targetPitch = dpitch * y_change;
+
+    return current_pitch + (targetPitch - current_pitch) * 0.1;
+};
+
 // Update the position of the movable camera, called each tick.
 void AMovableCamera::UpdatePosition()
 {
@@ -167,16 +207,21 @@ void AMovableCamera::UpdatePosition()
         CameraComponent->SetRelativeLocation(LastKnownPosition); // Sets new position in the world.
         UE_LOG(LogTemp, Warning, TEXT("X: %f, Y: %f, Z: %f"), X, Y, Z);
     }
+
+    // Calulate the origninal Z postion retrived from OpenCV server
+    float z_opencv = newLocation.Z + HeadTrackingComponent->CameraCentering.Z;
     
     // Option to remove rotation aspect of camera movement in UE.
     if (IncludeRotation)
     {
         // New position of the camera after handling as FRotator, the standard format of rotation.
-        LastKnownRotation = StartDirection + FRotator(
-            newLocation.Y * YRotationSensitivity, 
-            newLocation.X * XRotationSensitivity, 
-            newLocation.Z * ZRotationSensitivity
-        );
+        float pitch = rotation_pitch(LastKnownRotation.Pitch,newLocation.Y, z_opencv);
+        float yaw = rotation_yaw(LastKnownRotation.Yaw, newLocation.X, z_opencv);
+
+        UE_LOG(LogTemp, Warning, TEXT("Pitch(Y): %f, Roll(X): %f, Z: %f"), pitch, yaw, z_opencv);
+      
+
+        LastKnownRotation = StartDirection + FRotator(pitch, yaw, 0);
         // Sets new rotation relative to the world.
         CameraComponent->SetWorldRotation(LastKnownRotation); 
     }
@@ -184,8 +229,7 @@ void AMovableCamera::UpdatePosition()
     // Option to include or remove fov.
     if (HeadTrackingComponent->ZAxis && FOVEnabled)
     {
-        // Calulate the origninal Z postion retrived from OpenCV server
-        float z_opencv = newLocation.Z + HeadTrackingComponent->CameraCentering.Z; 
+        
 
         // Calulating the new fov value and changing it 
         float new_fov = this->FOV(z_opencv);
@@ -210,9 +254,8 @@ void AMovableCamera::ChangeCameraSettings(int32 PresetIndex)
         YMovementSensitivity = Preset.YMoveSen;
         ZMovementSensitivity = Preset.ZMoveSen;
 
-        XRotationSensitivity = Preset.XRotSen;
-        YRotationSensitivity = Preset.YRotSen;
-        ZRotationSensitivity = Preset.ZRotSen;
+        YawSensitivity = Preset.XRotSen;
+        PitchSensitivity = Preset.YRotSen;
 
         FOVSensitivity = Preset.FOVSen;
     }
