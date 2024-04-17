@@ -140,10 +140,21 @@ float  AMovableCamera::TranslateY(float y_opencv) {
     Returns the new yaw
 
 */
-float AMovableCamera::rotation_yaw(float x_change, float z_change) {
-    float c = 10;
-    float dyaw = 0.09 - z_change / 1900;
-    return dyaw * (x_change - WidthUE / 2) + c;
+float AMovableCamera::rotation_yaw(float current_yaw, float x_change, float z_change) {
+    // Constants
+    float baseScale = 0.9; 
+    float maxZ = 300.0f; 
+
+
+    float depthScale = 1 / (1 + z_change / maxZ); 
+
+    float dyaw = baseScale * depthScale; 
+    float targetYaw = dyaw * x_change;
+
+
+    float smoothedYaw = current_yaw + (targetYaw - current_yaw) * 0.1;
+
+    return smoothedYaw; 
 };
 
 
@@ -155,10 +166,18 @@ float AMovableCamera::rotation_yaw(float x_change, float z_change) {
     Returns the new pitch
 
 */
-float AMovableCamera::rotation_pitch(float y_change, float z_change) {
-    float c = 10;
-    float dpitch = PitchSensitivity;
-    return dpitch * (y_change - HeightUE / 2) + c;
+float AMovableCamera::rotation_pitch(float current_pitch, float y_change, float z_change) {
+    // Constants
+    float baseScale = 0.6;
+    float maxZ = 300.0f;
+
+
+    float depthScale = 1 / (1 + z_change / maxZ);
+
+    float dpitch = baseScale * depthScale;
+    float targetPitch = dpitch * y_change;
+
+    return current_pitch + (targetPitch - current_pitch) * 0.1;
 };
 
 // Update the position of the movable camera, called each tick.
@@ -194,11 +213,11 @@ void AMovableCamera::UpdatePosition()
     if (IncludeRotation)
     {
         // New position of the camera after handling as FRotator, the standard format of rotation.
-        float pitch = rotation_pitch(newLocation.Y, z_opencv);
-        float yaw = rotation_yaw(newLocation.X, z_opencv);
+        float pitch = rotation_pitch(LastKnownRotation.Pitch,newLocation.Y, z_opencv);
+        float yaw = rotation_yaw(LastKnownRotation.Yaw, newLocation.X, z_opencv);
 
         UE_LOG(LogTemp, Warning, TEXT("Pitch(Y): %f, Roll(X): %f, Z: %f"), pitch, yaw, z_opencv);
-
+      
 
         LastKnownRotation = StartDirection + FRotator(pitch, yaw, 0);
         // Sets new rotation relative to the world.
