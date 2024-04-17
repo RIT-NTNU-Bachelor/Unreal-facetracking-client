@@ -7,9 +7,24 @@
 #include "Camera/CameraComponent.h"
 #include "EngineUtils.h"
 #include "UDPReceiver.h"
+#include "Engine/DataTable.h"
 #include <iostream>
 
 #include "HeadTracking.generated.h"
+
+USTRUCT(BlueprintType)
+struct FHeadTrackingPresets : public FTableRowBase
+{
+    GENERATED_BODY()
+
+public:
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        bool SmoothingBool;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        int32 SmoothingAmount;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+        bool ZBool;
+};
 
 UCLASS()
 class USERLOCSERVER_API UHeadTracking : public UActorComponent
@@ -36,14 +51,16 @@ public:
     bool GetFaceCoordinates(FVector&);
 
     // Use smoothing or not when tracking head.
-    UPROPERTY(EditAnywhere, Category = "Head Tracking (Server)")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Head Tracking (Server)")
         bool UseSmoothing;                          // Include smoothing of movement boolean.
-    UPROPERTY(EditAnywhere, Category = "Head Tracking (Server)|Smoothing")
-        int16 SmoothingBufferSize;                  // Set smoothing buffer size, higher equals smoother movement.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Head Tracking (Server)|Smoothing")
+        int32 SmoothingBufferSize;                  // Set smoothing buffer size, higher equals smoother movement.
 
     // Z-axis modifiers.
-    UPROPERTY(EditAnywhere, Category = "Head Tracking (Server)")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Head Tracking (Server)")
         bool ZAxis;
+
+    UFUNCTION(BlueprintCallable) void ChangeHeadTrackingPreset(FHeadTrackingPresets Preset);
 
     // Camera sender modifier.
     UPROPERTY(EditAnywhere, Category = "Head Tracking (Server)")
