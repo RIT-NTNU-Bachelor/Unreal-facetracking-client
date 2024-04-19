@@ -35,8 +35,8 @@ AMovableCamera::AMovableCamera()
     CY = 240.0f;    // Retrive from camera-center.py
 
     // Set the scalars used in camera movement.
-    Scalar_X = (WidthUE / 480.0f) * XMovementSensitivity;
-    Scalar_Y = (HeightUE / 480.0f) * YMovementSensitivity;
+    Scalar_X = (WidthUE / 480.0f);
+    Scalar_Y = (HeightUE / 480.0f);
 
 
     BlurCounter = 0;
@@ -108,7 +108,7 @@ float AMovableCamera::FOV(float z) {
 */
 float  AMovableCamera::TranslateX(float x_opencv) {
     // Calculate the x translation 
-    float new_x = (2 * CX * x_opencv / FocalLength) * Scalar_X;
+    float new_x = (2 * CX * x_opencv / FocalLength) * Scalar_X * XMovementSensitivity;
 
     // Use half of the set width as a maximum + padding based on the wall
     // Movement should not be more than half of the width based on camera center
@@ -128,7 +128,7 @@ float  AMovableCamera::TranslateX(float x_opencv) {
 */
 float  AMovableCamera::TranslateY(float y_opencv) {
     // Calculate the y translation 
-    float new_y = (2 * CY * y_opencv / FocalLength) * Scalar_Y;
+    float new_y = (2 * CY * y_opencv / FocalLength) * Scalar_Y * YMovementSensitivity;
 
     // Use half of the set height as a maximum + padding based on the wall
     if (abs(new_y) > (HeightUE / 2 - 20))
@@ -239,26 +239,21 @@ void AMovableCamera::UpdatePosition()
 
 
 // Sets the camera settings based on preset index, from data table.
-void AMovableCamera::ChangeCameraSettings(int32 PresetIndex)
+void AMovableCamera::ChangeCameraSettings(FCameraPreset Preset)
 {
-    if (CameraPresets.IsValidIndex(PresetIndex))
-    {
-        FCameraPreset Preset = CameraPresets[PresetIndex];
-
-        // Set the camera properties based on the preset
-        IncludeRotation = Preset.IncRot;
-        IncludeMovement = Preset.IncMov;
-        FOVEnabled = Preset.IncFov;
-
-        XMovementSensitivity = Preset.XMoveSen;
-        YMovementSensitivity = Preset.YMoveSen;
-        ZMovementSensitivity = Preset.ZMoveSen;
-
-        YawSensitivity = Preset.XRotSen;
-        PitchSensitivity = Preset.YRotSen;
-
-        FOVSensitivity = Preset.FOVSen;
-    }
+    // Set the camera properties based on the preset
+    IncludeRotation = Preset.IncRot;
+    IncludeMovement = Preset.IncMov;
+    FOVEnabled = Preset.IncFov;
+    
+    XMovementSensitivity = Preset.XMoveSen;
+    YMovementSensitivity = Preset.YMoveSen;
+    ZMovementSensitivity = Preset.ZMoveSen;
+    
+    YawSensitivity = Preset.XRotSen;
+    PitchSensitivity = Preset.YRotSen;
+    
+    FOVSensitivity = Preset.FOVSen;
 }
 
 void AMovableCamera::CenterCamera(FVector NewCenter)
