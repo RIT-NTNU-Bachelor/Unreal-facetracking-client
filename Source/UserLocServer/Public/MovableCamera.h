@@ -96,7 +96,7 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Tweaking")
         UDataTable* LevelSpecificSettings;
 
-    UFUNCTION(BlueprintCallable) void ChangeCameraSettings(int32 PresetIndex);
+    UFUNCTION(BlueprintCallable) void ChangeCameraSettings(FCameraPreset Preset);
     UFUNCTION(BlueprintCallable) void CenterCamera(FVector NewCenter);
     UFUNCTION(BlueprintCallable) void SetLevelSpecificSettings(FLevelSpecificSettings LevelSetting);
 
