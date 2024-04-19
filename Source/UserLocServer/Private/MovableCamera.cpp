@@ -187,10 +187,9 @@ void AMovableCamera::UpdatePosition()
     bool bDidGetCoords = HeadTrackingComponent->GetFaceCoordinates(newLocation);
 
     // Check if we need to tell the user if they are out of view by blocking the main thread of the program  
-    if (AddDebugMessageIfUserOutOfView(bDidGetCoords)) return; // No need to update the postion. Exit the function
+    if (OutOfBounds(bDidGetCoords)) return; // No need to update the postion. Exit the function
 
-
-    UE_LOG(LogTemp, Warning, TEXT("NEW LOCATION: %f %f %f"), newLocation.X, newLocation.Y, newLocation.Z);
+    //UE_LOG(LogTemp, Warning, TEXT("NEW LOCATION: %f %f %f"), newLocation.X, newLocation.Y, newLocation.Z);
 
     // New position of the camera after handling as FVector, the standard format of coordinates.
     if (IncludeMovement)
@@ -205,7 +204,7 @@ void AMovableCamera::UpdatePosition()
         // Note that the camera has its own axis - i.e its important to note that we set the new values based on the cameras axis.  
         LastKnownPosition = StartLocation + FVector(Z, -X, -Y);
         CameraComponent->SetRelativeLocation(LastKnownPosition); // Sets new position in the world.
-        UE_LOG(LogTemp, Warning, TEXT("X: %f, Y: %f, Z: %f"), X, Y, Z);
+        //UE_LOG(LogTemp, Warning, TEXT("X: %f, Y: %f, Z: %f"), X, Y, Z);
     }
 
     // Calulate the origninal Z postion retrived from OpenCV server
@@ -218,9 +217,8 @@ void AMovableCamera::UpdatePosition()
         float pitch = rotation_pitch(LastKnownRotation.Pitch,newLocation.Y, z_opencv);
         float yaw = rotation_yaw(LastKnownRotation.Yaw, newLocation.X, z_opencv);
 
-        UE_LOG(LogTemp, Warning, TEXT("Pitch(Y): %f, Roll(X): %f, Z: %f"), pitch, yaw, z_opencv);
+        //UE_LOG(LogTemp, Warning, TEXT("Pitch(Y): %f, Roll(X): %f, Z: %f"), pitch, yaw, z_opencv);
       
-
         LastKnownRotation = StartDirection + FRotator(pitch, yaw, 0);
         // Sets new rotation relative to the world.
         CameraComponent->SetWorldRotation(LastKnownRotation); 
@@ -229,8 +227,6 @@ void AMovableCamera::UpdatePosition()
     // Option to include or remove fov.
     if (HeadTrackingComponent->ZAxis && FOVEnabled)
     {
-        
-
         // Calulating the new fov value and changing it 
         float new_fov = this->FOV(z_opencv);
         CameraComponent->SetFieldOfView(new_fov);
@@ -291,36 +287,32 @@ void AMovableCamera::LoadPresetsFromDataTable()
     }
 }
 
+
 /*
     Function for printing a message to the user is out of view of the camera.
     Will set the field of view to zero and add the message to the screen telling the user to move back into frame. 
 
     Returns true if the user is out of view 
 */
-bool AMovableCamera::AddDebugMessageIfUserOutOfView(bool has_coords) {
-    if (!has_coords){
+bool AMovableCamera::OutOfBounds(bool in_view) {
+    // If the face is not in view, enter this if statement.
+    if (!in_view) {
         // Has to go at least 5 ticks without seing the user in a row. 
         if (BlurCounter > 5) {
-            // Prints the debug message to the screen
             if (!bHasDebugMessage) {
-                CameraComponent->SetFieldOfView(0); 
-                FString message = FString("\nYou are out of view from the camera, or OpenCV server is not running.\nPlease move in the field of view of the camera...");
-                GEngine->AddOnScreenDebugMessage(-1, 20.0f, FColor::White, message, true, FVector2D(2.5f));
+                // Out of bounds not enabled.
+                if (OutOfBoundsEnabled) OnFaceLost.Broadcast();
+                UE_LOG(LogTemp, Warning, TEXT("%b"), OutOfBoundsEnabled);
                 bHasDebugMessage = true;
             }
             return true; 
-            
         }
-        // Clear message form the screen
-        GEngine->ClearOnScreenDebugMessages();
-
         // Increment the amount of frames the user was out of view. 
         BlurCounter += 1;
     }
     else {
+        if (bHasDebugMessage && OutOfBoundsEnabled) OnFaceFound.Broadcast();
         // A frame with the user 
-        // Reset all varaibles and remove any debug messages 
-        if (bHasDebugMessage) GEngine->ClearOnScreenDebugMessages();
         bHasDebugMessage = false;
         BlurCounter = 0; 
     }
