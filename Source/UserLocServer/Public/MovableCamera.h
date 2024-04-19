@@ -8,10 +8,14 @@
 #include "UDPReceiver.h"
 #include "HeadTracking.h"
 #include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerState.h"
 #include <iostream>
 #include "Engine/DataTable.h"
 
 #include "MovableCamera.generated.h"
+
+// Delegate signature
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FFaceDetectionSignature);
 
 USTRUCT(BlueprintType)
 struct FCameraPreset : public FTableRowBase
@@ -130,6 +134,16 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Tweaking|FOV")
         float FOVSensitivity;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Tweaking")
+        bool OutOfBoundsEnabled;
+
+    // Delegates for event upon face loss and detection.
+    UPROPERTY(BlueprintAssignable)
+        FFaceDetectionSignature OnFaceLost;
+    UPROPERTY(BlueprintAssignable)
+        FFaceDetectionSignature OnFaceFound;
+
+    // Function to load preset from existing data table.
     void LoadPresetsFromDataTable();
 
 private:
@@ -159,7 +173,7 @@ private:
     bool bHasDebugMessage; 
 
     // Function for telling the user that they are out of view 
-    bool AddDebugMessageIfUserOutOfView(bool has_coords); 
+    bool OutOfBounds(bool has_coords); 
 
     // Function for updating the user postion 
     void UpdatePosition();
