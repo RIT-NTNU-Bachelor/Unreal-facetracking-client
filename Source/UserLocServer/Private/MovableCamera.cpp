@@ -1,5 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+#include <chrono>
+#include <iostream>
+#include <chrono>
+#include <fstream>
+#include <string>
 #include "MovableCamera.h"
 
 // Sets default values
@@ -174,6 +179,13 @@ float AMovableCamera::rotation_pitch(float current_pitch, float y_change, float 
     return current_pitch + (targetPitch - current_pitch) * 0.1;
 };
 
+// Define a helper function to get current time as a float
+float getCurrentTimeInSeconds() {
+    std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+    std::chrono::duration<float> durationSinceEpoch = now.time_since_epoch();
+    return durationSinceEpoch.count();
+}
+
 // Update the position of the movable camera, called each tick.
 void AMovableCamera::UpdatePosition()
 {
@@ -231,6 +243,27 @@ void AMovableCamera::UpdatePosition()
         float new_fov = this->FOV(z_opencv);
         CameraComponent->SetFieldOfView(new_fov);
     }
+
+    //UE_LOG(LogTemp, Warning, TEXT("C++ time: %f. Python time: %f"), getCurrentTimeInSeconds(), HeadTrackingComponent->packet_sent_time);
+    
+    /*float latency = getCurrentTimeInSeconds() - HeadTrackingComponent->packet_sent_time;
+    // Convert latency to string
+    std::string latencyString = std::to_string(latency);
+    // Open the file in append mode
+    std::ofstream file("latency_log.txt", std::ios_base::app);
+
+    // Check if the file is open
+    if (file.is_open()) {
+        // Write the latency string to the file
+        file << latencyString << std::endl;
+
+        // Close the file
+        file.close();
+    }
+    else {
+        // Print an error message if the file cannot be opened
+        std::cerr << "Unable to open file" << std::endl;
+    }*/
 }
 
 

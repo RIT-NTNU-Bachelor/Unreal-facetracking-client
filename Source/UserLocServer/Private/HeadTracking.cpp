@@ -10,6 +10,7 @@ UHeadTracking::UHeadTracking()
     bAllowAnyoneToDestroyMe = true;
 
     CameraCentering = FVector(320.0f, 280.0f, 60.0f);
+    TrackLatency = false;
 
     // Create and attach the UDPReceiver component
     UDPReceiverComponent = CreateDefaultSubobject<UUDPReceiver>(TEXT("UDPReceiverComponent"));
@@ -87,6 +88,7 @@ bool UHeadTracking::GetFaceCoordinates(FVector& newLocation)
             X = (FCString::Atof(*Points[0]) - CameraCentering.X); // Parses X into float from FCString.
             Y = (FCString::Atof(*Points[1]) - CameraCentering.Y); // Parses Y into float from FCString.
             Z = (Points.Num() > 2 && ZAxis) ? (FCString::Atof(*Points[2]) - CameraCentering.Z) : 0.0f;
+            packet_sent_time = (TrackLatency) ? FCString::Atof(*Points[3]) : 0.0f;
 
             //  Adds the data to a list to find average of X and Y. Smooths the movement.
             if (UseSmoothing)
@@ -104,6 +106,7 @@ bool UHeadTracking::GetFaceCoordinates(FVector& newLocation)
                 Z = ZAxis ? CalculateAverage(ZList) : Z;
             }
             newLocation = FVector(X, Y, Z);
+            //UE_LOG(LogTemp, Error, TEXT("X: %f, Y: %f, Z: %f"), X, Y, Z)
             return true; 
         } 
     }

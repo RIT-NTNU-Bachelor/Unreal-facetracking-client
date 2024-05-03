@@ -66,6 +66,12 @@ public:
     UPROPERTY(EditAnywhere, Category = "Head Tracking (Server)")
         FVector CameraCentering;
 
+    // Camera sender modifier.
+    UPROPERTY(EditAnywhere, Category = "Head Tracking (Server)")
+        bool TrackLatency;
+
+    float packet_sent_time;
+
 private:
     // X and Y coordinate lists for average calculation.
     float X;
