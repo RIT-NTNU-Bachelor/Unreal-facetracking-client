@@ -179,12 +179,15 @@ float AMovableCamera::rotation_pitch(float current_pitch, float y_change, float 
     return current_pitch + (targetPitch - current_pitch) * 0.1;
 };
 
+/*
 // Define a helper function to get current time as a float
 float getCurrentTimeInSeconds() {
-    std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
-    std::chrono::duration<float> durationSinceEpoch = now.time_since_epoch();
-    return durationSinceEpoch.count();
-}
+    // Calculate the offset from the start time to the current time
+    FDateTime StartOf2024(2024, 5, 3, 14, 30, 0, 0);
+    double StartOf2024Timestamp = StartOf2024.ToUnixTimestamp();
+    double CurrentTime = FPlatformTime::Seconds();
+    return (CurrentTime - StartOf2024Timestamp);
+}*/
 
 // Update the position of the movable camera, called each tick.
 void AMovableCamera::UpdatePosition()
@@ -244,25 +247,45 @@ void AMovableCamera::UpdatePosition()
         CameraComponent->SetFieldOfView(new_fov);
     }
 
-    //UE_LOG(LogTemp, Warning, TEXT("C++ time: %f. Python time: %f"), getCurrentTimeInSeconds(), HeadTrackingComponent->packet_sent_time);
-    
-    /*float latency = getCurrentTimeInSeconds() - HeadTrackingComponent->packet_sent_time;
+    // Calculate latency
+    //float latency = (getCurrentTimeInSeconds() - HeadTrackingComponent->packet_sent_time);
+
+    // UE_LOG(LogTemp, Warning, TEXT("Latency: %f"), latency);
+    //UE_LOG(LogTemp, Error, TEXT("Python: %f"), HeadTrackingComponent->packet_sent_time);
+    //UE_LOG(LogTemp, Error, TEXT("C++: %f"), getCurrentTimeInSeconds());
+
+    // Calculate the offset from the start time to the current time
+    FDateTime StartOf2024(2024, 5, 3, 14, 30, 0, 0);
+    double StartOf2024Timestamp = StartOf2024.ToUnixTimestamp();
+    double CurrentTime = FPlatformTime::Seconds();
+    double CurrentTimeOffset = (CurrentTime - StartOf2024Timestamp);
+
+    // Adjust timestamp to start from the beginning of 2024
+    double AdjustedTimestamp = (HeadTrackingComponent->packet_sent_time / 1000.0) + StartOf2024Timestamp;
+
+    // Calculate latency
+    CurrentTime = FPlatformTime::Seconds();
+    CurrentTimeOffset = (CurrentTime - StartOf2024Timestamp);
+    float latency = (CurrentTimeOffset - AdjustedTimestamp);
+    UE_LOG(LogTemp, Warning, TEXT("Latency: %f"), latency);
+    /*
     // Convert latency to string
     std::string latencyString = std::to_string(latency);
     // Open the file in append mode
-    std::ofstream file("latency_log.txt", std::ios_base::app);
-
+    std::ofstream file("C:\\Users\\sande\\GitHub\\Unreal-facetracking-client\\Logs\\latency_log.txt", std::ios_base::app);
+    //UE_LOG(LogTemp, Error, "%s", FString(file.getloc))
     // Check if the file is open
     if (file.is_open()) {
         // Write the latency string to the file
-        file << latencyString << std::endl;
+        file << latency_index + "," + latencyString << std::endl;
 
         // Close the file
         file.close();
+        latency_index = latency_index + 1;
     }
     else {
         // Print an error message if the file cannot be opened
-        std::cerr << "Unable to open file" << std::endl;
+        UE_LOG(LogTemp, Error, TEXT("Unable to open file"));
     }*/
 }
 
@@ -331,7 +354,7 @@ bool AMovableCamera::OutOfBounds(bool in_view) {
     // If the face is not in view, enter this if statement.
     if (!in_view) {
         // Has to go at least 5 ticks without seing the user in a row. 
-        if (BlurCounter > 5) {
+        if (BlurCounter > 10) {
             if (!bHasDebugMessage) {
                 // Out of bounds not enabled.
                 if (OutOfBoundsEnabled) OnFaceLost.Broadcast();

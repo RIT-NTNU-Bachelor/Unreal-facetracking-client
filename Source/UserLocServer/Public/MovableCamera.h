@@ -172,6 +172,8 @@ private:
     float BlurCounter; 
     bool bHasDebugMessage; 
 
+    int latency_index = 0;
+
     // Function for telling the user that they are out of view 
     bool OutOfBounds(bool has_coords); 
 
