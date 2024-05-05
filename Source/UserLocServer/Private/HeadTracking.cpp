@@ -1,6 +1,11 @@
 // HeadTrackingActor.cpp
 
 #include "HeadTracking.h"
+#include "CoreMinimal.h"
+#include "GameFramework/Pawn.h"
+#include "Camera/CameraComponent.h"
+#include "EngineUtils.h"
+#include <iostream>
 
 /*
     Constructor of Head Tracking component.
@@ -86,8 +91,7 @@ void UHeadTracking::ExtractFaceCoordinateData(FString Data)
        X = (FCString::Atof(*Points[0]) - CameraCentering.X); // Parses X into float from FCString.
        Y = (FCString::Atof(*Points[1]) - CameraCentering.Y); // Parses Y into float from FCString.
        Z = (Points.Num() > 2 && ZAxis) ? (FCString::Atof(*Points[2]) - CameraCentering.Z) : 0.0f;
-       float SendIndex = FCString::Atof(*Points[3]);
-       UE_LOG(LogTemp, Error, TEXT("Points size: %i. SendIndex: %f"), Points.Num(), SendIndex);
+       if (bLatencyTesting) SendIndex = FCString::Atof(*Points[3]);
 
        //  Adds the data to a list to find average of X and Y. Smooths the movement.
        if (UseSmoothing)
@@ -104,7 +108,7 @@ void UHeadTracking::ExtractFaceCoordinateData(FString Data)
            Y = CalculateAverage(YList);
            Z = ZAxis ? CalculateAverage(ZList) : Z;
        }
-       OnFaceMoved.Execute(FVector(X, Y, Z), SendIndex);
+       OnFaceMoved.Execute(FVector(X, Y, Z));
        UE_LOG(LogTemp, Error, TEXT("X: %f, Y: %f, Z: %f"), X, Y, Z)        
    }
 }

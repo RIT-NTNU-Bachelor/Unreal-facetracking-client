@@ -1,19 +1,12 @@
 // HeadTrackingActor.h
 
 #pragma once
-
-#include "CoreMinimal.h"
-#include "GameFramework/Pawn.h"
-#include "Camera/CameraComponent.h"
-#include "EngineUtils.h"
 #include "UDPReceiver.h"
 #include "Engine/DataTable.h"
-#include <iostream>
-
 #include "HeadTracking.generated.h"
 
 // Delegate which is called whenever the face coordinate has changed.
-DECLARE_DELEGATE_TwoParams(FOnFaceMoved, FVector, float)
+DECLARE_DELEGATE_OneParam(FOnFaceMoved, FVector)
 
 /*
     Struct used for Head Tracking presets.
@@ -74,6 +67,9 @@ public:
     // Delegate signature
     FOnFaceMoved OnFaceMoved;
 
+    // Boolean for testing latency, if true it expects another value from python server: send index (0..N).
+    bool bLatencyTesting = false;
+    float SendIndex;
 private:
     float X;
     float Y;

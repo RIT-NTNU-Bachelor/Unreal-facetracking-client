@@ -1,17 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
-
-#include "CoreMinimal.h"
 #include "Camera/CameraComponent.h"
-#include "EngineUtils.h"
+#include "Engine/DataTable.h"
 #include "UDPReceiver.h"
 #include "HeadTracking.h"
-#include "GameFramework/Pawn.h"
-#include "GameFramework/PlayerState.h"
-#include <iostream>
-#include "Engine/DataTable.h"
-
 #include "MovableCamera.generated.h"
 
 // Delegate for out of bounds screen.
@@ -169,7 +162,6 @@ private:
 
     float BlurCounter; 
     bool bHasDebugMessage; 
-    bool bLogTimestamps = true;
     bool bOutOfBoundsShowing;
 
     // Function for telling the user that they are out of view 
@@ -177,7 +169,7 @@ private:
     void InBounds(); 
 
     // Function for updating the user postion 
-    void UpdatePosition(FVector NewLocation, float index);
+    void UpdatePosition(FVector NewLocation);
 
     // Funcitons for calulating the change for x and y axis
     float TranslateX(float x_opencv);

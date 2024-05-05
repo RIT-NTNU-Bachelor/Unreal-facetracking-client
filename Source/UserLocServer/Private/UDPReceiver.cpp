@@ -1,6 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "UDPReceiver.h"
+#include "CoreMinimal.h"
+#include "Components/ActorComponent.h"
+#include "Runtime/Networking/Public/Networking.h"
+#include "Runtime/Sockets/Public/Sockets.h"
+#include "Runtime/Sockets/Public/SocketSubsystem.h"
+#include "Runtime/Online/HTTP/Public/Http.h"
 
 /*
     Constuctor of UDP Receiver.

@@ -2,11 +2,14 @@
 
 #include "MovableCamera.h"
 
-#include <ctime>
+#include "GameFramework/Pawn.h"
 #include <chrono>
-#include <fstream>
+#include <fstream>      // Used for writing to file.
 #include <string>
 #include <iomanip>      // for std::put_time
+#include <iostream>
+#include "CoreMinimal.h"
+#include "EngineUtils.h"
 
 /*
     Constructor of Movable Camera.
@@ -215,7 +218,7 @@ std::string GetCurrentTimeFormatted() {
     Update the position of the movable camera, called each delegate execution.
     Parameter newLocation is a FVector comprised of updated X, Y, Z coordinates.
 */ 
-void AMovableCamera::UpdatePosition(FVector newLocation, float index)
+void AMovableCamera::UpdatePosition(FVector newLocation)
 {
     InBounds();
 
@@ -266,14 +269,14 @@ void AMovableCamera::UpdatePosition(FVector newLocation, float index)
     }
 
     // Latency testing. Writes timestamp to file in Logs. bLogTimestamps is false by default. !!!Only fuctional with Windows!!!
-    if (bLogTimestamps)
+    if (HeadTrackingComponent->bLatencyTesting)
     {
-        // Open the file in append mode
+        // Open the file in append mode. Enter own file path for latency testing.
         std::ofstream file("C:\\Users\\sande\\GitHub\\Unreal-facetracking-client\\Logs\\latency_log.txt", std::ios_base::app);
         // Check if the file is open
         if (file.is_open()) {
             // Write the latency string to the file
-            file << index << "," << GetCurrentTimeFormatted() << std::endl;
+            file << HeadTrackingComponent->SendIndex << "," << GetCurrentTimeFormatted() << std::endl;
             // Close the file
             file.close();
         }
