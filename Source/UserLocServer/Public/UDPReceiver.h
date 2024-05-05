@@ -38,6 +38,7 @@ public:
 	// Extention of Tick function for an actor, will run in tandem.
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	// Delegate declarations used for udp data receival or if none is incoming.
 	FOnUDPDataReceivedSignature UDPDataReceived;
 	FNoUDPDataReceivedSignature NoUDPDataReceived;
 private:

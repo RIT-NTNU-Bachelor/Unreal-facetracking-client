@@ -1,12 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+#include "MovableCamera.h"
+
 #include <ctime>
 #include <chrono>
 #include <fstream>
 #include <string>
 #include <iomanip>      // for std::put_time
-
-#include "MovableCamera.h"
 
 /*
     Constructor of Movable Camera.
@@ -215,7 +215,7 @@ std::string GetCurrentTimeFormatted() {
     Update the position of the movable camera, called each delegate execution.
     Parameter newLocation is a FVector comprised of updated X, Y, Z coordinates.
 */ 
-void AMovableCamera::UpdatePosition(FVector newLocation)
+void AMovableCamera::UpdatePosition(FVector newLocation, float index)
 {
     InBounds();
 
@@ -273,7 +273,7 @@ void AMovableCamera::UpdatePosition(FVector newLocation)
         // Check if the file is open
         if (file.is_open()) {
             // Write the latency string to the file
-            file << GetCurrentTimeFormatted() << std::endl;
+            file << index << "," << GetCurrentTimeFormatted() << std::endl;
             // Close the file
             file.close();
         }

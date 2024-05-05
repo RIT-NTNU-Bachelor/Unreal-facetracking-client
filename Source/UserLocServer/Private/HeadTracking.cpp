@@ -2,6 +2,10 @@
 
 #include "HeadTracking.h"
 
+/*
+    Constructor of Head Tracking component.
+    Initializes important values.
+*/
 UHeadTracking::UHeadTracking()
 {
     // Sets it to be able to tick with world and actor.
@@ -18,7 +22,7 @@ UHeadTracking::UHeadTracking()
 
 
 /*
-* Runs when the game plays.
+    BeginPlay is called when the game starts, as long as the actor component is present in a level.
 */
 bool UHeadTracking::StartHeadTracking()
 {
@@ -45,6 +49,10 @@ bool UHeadTracking::StartHeadTracking()
 }
 
 
+/*
+    Sets the Head Tracking settings based on preset index, from data table.
+    Parameter FHeadTrackingPresets is a struct made specifically for HT presets.
+*/
 void UHeadTracking::ChangeHeadTrackingPreset(FHeadTrackingPresets Preset)
 {
     UseSmoothing = Preset.SmoothingBool;
@@ -54,7 +62,7 @@ void UHeadTracking::ChangeHeadTrackingPreset(FHeadTrackingPresets Preset)
 
 
 /*
-* Updates head position based on the UDP component data.
+    Updates head position based on the UDP component data.
 */
 void UHeadTracking::ExtractFaceCoordinateData(FString Data)
 {    
@@ -66,7 +74,7 @@ void UHeadTracking::ExtractFaceCoordinateData(FString Data)
 
    // Assuming the data format is: '(X,Y,Z)' 
    // Gets the data as bytes 
-   Data = Data.RightChop(1).LeftChop(1);    // Removes '( )'
+   Data = Data.RightChop(1).LeftChop(1);    // Removes [ ]
 
    // Parse the data into a list of points 
    TArray<FString> Points;
@@ -75,17 +83,11 @@ void UHeadTracking::ExtractFaceCoordinateData(FString Data)
    
    if (Points.Num() >= 2) // 2 or more points: x, y, may also include z.
    {
-       try
-       {
-           X = (FCString::Atof(*Points[0]) - CameraCentering.X); // Parses X into float from FCString.
-           Y = (FCString::Atof(*Points[1]) - CameraCentering.Y); // Parses Y into float from FCString.
-           Z = (Points.Num() > 2 && ZAxis) ? (FCString::Atof(*Points[2]) - CameraCentering.Z) : 0.0f;
-       }
-       catch (const std::exception&)
-       {
-           UE_LOG(LogTemp, Error, TEXT("Not correct format."));
-           return;
-       }
+       X = (FCString::Atof(*Points[0]) - CameraCentering.X); // Parses X into float from FCString.
+       Y = (FCString::Atof(*Points[1]) - CameraCentering.Y); // Parses Y into float from FCString.
+       Z = (Points.Num() > 2 && ZAxis) ? (FCString::Atof(*Points[2]) - CameraCentering.Z) : 0.0f;
+       float SendIndex = FCString::Atof(*Points[3]);
+       UE_LOG(LogTemp, Error, TEXT("Points size: %i. SendIndex: %f"), Points.Num(), SendIndex);
 
        //  Adds the data to a list to find average of X and Y. Smooths the movement.
        if (UseSmoothing)
@@ -102,13 +104,14 @@ void UHeadTracking::ExtractFaceCoordinateData(FString Data)
            Y = CalculateAverage(YList);
            Z = ZAxis ? CalculateAverage(ZList) : Z;
        }
-       OnFaceMoved.Execute(FVector(X, Y, Z));
-       //UE_LOG(LogTemp, Error, TEXT("X: %f, Y: %f, Z: %f"), X, Y, Z)        
+       OnFaceMoved.Execute(FVector(X, Y, Z), SendIndex);
+       UE_LOG(LogTemp, Error, TEXT("X: %f, Y: %f, Z: %f"), X, Y, Z)        
    }
 }
 
+
 /*
-* Simple average calculation.
+    Simple average calculation.
 */
 float UHeadTracking::CalculateAverage(const TArray<float>& Values)
 {

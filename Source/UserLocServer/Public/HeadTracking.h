@@ -13,7 +13,7 @@
 #include "HeadTracking.generated.h"
 
 // Delegate which is called whenever the face coordinate has changed.
-DECLARE_DELEGATE_OneParam(FOnFaceMoved, FVector)
+DECLARE_DELEGATE_TwoParams(FOnFaceMoved, FVector, float)
 
 /*
     Struct used for Head Tracking presets.
@@ -73,6 +73,7 @@ public:
 
     // Delegate signature
     FOnFaceMoved OnFaceMoved;
+
 private:
     float X;
     float Y;

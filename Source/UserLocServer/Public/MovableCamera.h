@@ -177,7 +177,7 @@ private:
     void InBounds(); 
 
     // Function for updating the user postion 
-    void UpdatePosition(FVector NewLocation);
+    void UpdatePosition(FVector NewLocation, float index);
 
     // Funcitons for calulating the change for x and y axis
     float TranslateX(float x_opencv);
