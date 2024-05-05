@@ -31,11 +31,17 @@ void UUDPReceiver::BeginDestroy()
 */ 
 void UUDPReceiver::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
-    // Continuous operation of UDP receiver
-    if (Socket)
+    if (!Socket) 
     {
-        FString SerializedData = "";
-        ReceiveUDPData(SerializedData);
+        UE_LOG(LogTemp, Error, TEXT("UDP: Failed to create listener socket!"));
+        return;
+    }
+    else {
+        // Continuous operation of UDP receiver
+        while (Socket->HasPendingData(Size))
+        {
+            ReceiveUDPData();
+        }
     }
 }
 
@@ -66,32 +72,19 @@ bool UUDPReceiver::StartUDPReceiver(const FString& socketName, const FString& Th
     return bIsValidSocket;
 }
 
+
 /*
 * Function to collect data.
 * Expects FString reference and sets the pointer based on UDP data.
 */
-bool UUDPReceiver::ReceiveUDPData(FString& OutReceivedData)
+void UUDPReceiver::ReceiveUDPData()
 {
-    if (!Socket)
-    {
-        UE_LOG(LogTemp, Error, TEXT("UDP: Failed to create listener socket!"));
-        return false;
-    }
-
     TArray<uint8> ReceivedData;
-    uint32 Size;
-    while (Socket->HasPendingData(Size))
-    {        
-        ReceivedData.Init(0, FMath::Min(Size, 65507u));
-
-        int32 Read = 0;
-        Socket->Recv(ReceivedData.GetData(), ReceivedData.Num(), Read);
-
-        if (Read > 0)
-        {
-            OutReceivedData = FString(ANSI_TO_TCHAR(reinterpret_cast<const char*>(ReceivedData.GetData())));
-            return true;
-        }
+    ReceivedData.Init(0, FMath::Min(Size, 65507u));
+    int32 Read = 0;
+    Socket->Recv(ReceivedData.GetData(), ReceivedData.Num(), Read);
+    if (Read > 0)
+    {
+        UDPDataReceived.Execute(FString(ANSI_TO_TCHAR(reinterpret_cast<const char*>(ReceivedData.GetData()))));
     }
-    return false;
 }

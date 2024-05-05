@@ -12,6 +12,8 @@
 
 #include "HeadTracking.generated.h"
 
+DECLARE_DELEGATE_OneParam(FOnFaceMoved, FVector)
+
 USTRUCT(BlueprintType)
 struct FHeadTrackingPresets : public FTableRowBase
 {
@@ -41,14 +43,11 @@ public:
     // Called when the game starts or when spawned
     bool StartHeadTracking();
 
-    // Called every frame
-    void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
     // Sets new property and UDP receiver component. Necessary to use the custom UDPReceiver component.
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Networking")
         UUDPReceiver* UDPReceiverComponent;
 
-    bool GetFaceCoordinates(FVector&);
+    void ExtractFaceCoordinateData(FString Data);
 
     // Use smoothing or not when tracking head.
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Head Tracking (Server)")
@@ -72,6 +71,8 @@ public:
 
     float packet_sent_time;
 
+    // Delegate signature
+    FOnFaceMoved OnFaceMoved;
 private:
     // X and Y coordinate lists for average calculation.
     float X;

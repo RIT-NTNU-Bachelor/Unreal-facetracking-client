@@ -11,6 +11,8 @@
 
 #include "UDPReceiver.generated.h"
 
+DECLARE_DELEGATE_OneParam(FOnUDPDataReceivedSignature, FString)
+
 UCLASS(ClassGroup = (UUDPReceiver), meta = (BlueprintSpawnableComponent))
 class USERLOCSERVER_API UUDPReceiver : public UActorComponent
 {
@@ -28,9 +30,12 @@ public:
 	// Method to initialize receiving of data.
 	bool StartUDPReceiver(const FString& YourChosenSocketName, const FString& TheIP, const int32 ThePort);
 	// Handling of UDP data.
-	bool ReceiveUDPData(FString& OutReceivedData);
+	void ReceiveUDPData();
 
-public:
 	// Extention of Tick function for an actor, will run in tandem.
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+	FOnUDPDataReceivedSignature UDPDataReceived;
+private:
+	uint32 Size;
 };

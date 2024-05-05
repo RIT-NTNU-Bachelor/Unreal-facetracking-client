@@ -147,7 +147,7 @@ public:
     void LoadPresetsFromDataTable();
 
 private:
-    FVector newLocation;
+    //FVector newLocation;
 
     // Function to calculate FOV
     float FOV(float z);
@@ -172,13 +172,11 @@ private:
     float BlurCounter; 
     bool bHasDebugMessage; 
 
-    int latency_index = 0;
-
     // Function for telling the user that they are out of view 
     bool OutOfBounds(bool has_coords); 
 
     // Function for updating the user postion 
-    void UpdatePosition();
+    void UpdatePosition(FVector NewLocation);
 
     // Funcitons for calulating the change for x and y axis
     float TranslateX(float x_opencv);

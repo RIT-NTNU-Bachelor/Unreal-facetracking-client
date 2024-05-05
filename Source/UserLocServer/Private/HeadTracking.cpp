@@ -10,11 +10,12 @@ UHeadTracking::UHeadTracking()
     bAllowAnyoneToDestroyMe = true;
 
     CameraCentering = FVector(320.0f, 280.0f, 60.0f);
-    TrackLatency = true;
 
     // Create and attach the UDPReceiver component
     UDPReceiverComponent = CreateDefaultSubobject<UUDPReceiver>(TEXT("UDPReceiverComponent"));
+    UDPReceiverComponent->UDPDataReceived.BindUObject(this, &UHeadTracking::ExtractFaceCoordinateData);
 }
+
 
 /*
 * Runs when the game plays.
@@ -43,15 +44,6 @@ bool UHeadTracking::StartHeadTracking()
     return false;
 }
 
-/*
-* Every tick in the game, this function will be run.
-* It updated the head position using the method: UpdateHeadPosition.
-*/
-void UHeadTracking::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-    FVector newLocation = FVector();
-    GetFaceCoordinates(newLocation);
-}
 
 void UHeadTracking::ChangeHeadTrackingPreset(FHeadTrackingPresets Preset)
 {
@@ -60,58 +52,59 @@ void UHeadTracking::ChangeHeadTrackingPreset(FHeadTrackingPresets Preset)
     ZAxis = Preset.ZBool;
 }
 
+
 /*
 * Updates head position based on the UDP component data.
 */
-bool UHeadTracking::GetFaceCoordinates(FVector& newLocation)
-{
-    FString Data = "";
+void UHeadTracking::ExtractFaceCoordinateData(FString Data)
+{    
+   // Data should be have retrived, but if not the tracking component does nothing 
+   if (Data.IsEmpty())
+   {
+       return;
+   }
 
-    if (UDPReceiverComponent->ReceiveUDPData(Data))
-    {
-        // Data should be have retrived, but if not the tracking component does nothing 
-        if (Data.IsEmpty())
-        {
-            return false;
-        }
+   // Assuming the data format is: '(X,Y,Z)' 
+   // Gets the data as bytes 
+   Data = Data.RightChop(1).LeftChop(1);    // Removes '( )'
 
-        // Assuming the data format is: '(X,Y,Z)' 
-        // Gets the data as bytes 
-        Data = Data.RightChop(1).LeftChop(1);    // Removes '( )'
+   // Parse the data into a list of points 
+   TArray<FString> Points;
+   
+   Data.ParseIntoArray(Points, TEXT(","), true);
+   
+   if (Points.Num() >= 2) // 2 or more points: x, y, may also include z.
+   {
+       try
+       {
+           X = (FCString::Atof(*Points[0]) - CameraCentering.X); // Parses X into float from FCString.
+           Y = (FCString::Atof(*Points[1]) - CameraCentering.Y); // Parses Y into float from FCString.
+           Z = (Points.Num() > 2 && ZAxis) ? (FCString::Atof(*Points[2]) - CameraCentering.Z) : 0.0f;
+       }
+       catch (const std::exception&)
+       {
+           UE_LOG(LogTemp, Error, TEXT("Not correct format."));
+           return;
+       }
 
-        // Parse the data into a list of points 
-        TArray<FString> Points;
-        Data.ParseIntoArray(Points, TEXT(","), true);
-        
-        if (Points.Num() >= 2) // 2 or more points: x, y, may also include z.
-        {
-            X = (FCString::Atof(*Points[0]) - CameraCentering.X); // Parses X into float from FCString.
-            Y = (FCString::Atof(*Points[1]) - CameraCentering.Y); // Parses Y into float from FCString.
-            Z = (Points.Num() > 2 && ZAxis) ? (FCString::Atof(*Points[2]) - CameraCentering.Z) : 0.0f;
-            packet_sent_time = (TrackLatency) ? FCString::Atoi(*Points[3]) : 0.0f;
+       //  Adds the data to a list to find average of X and Y. Smooths the movement.
+       if (UseSmoothing)
+       {
+           XList.Add(X);
+           YList.Add(Y);
+           if (ZAxis) ZList.Add(Z);
 
-            //  Adds the data to a list to find average of X and Y. Smooths the movement.
-            if (UseSmoothing)
-            {
-                XList.Add(X);
-                YList.Add(Y);
-                if (ZAxis) ZList.Add(Z);
+           if (XList.Num() > SmoothingBufferSize) XList.RemoveAt(0);
+           if (YList.Num() > SmoothingBufferSize) YList.RemoveAt(0);
+           if (ZAxis && ZList.Num() > SmoothingBufferSize) ZList.RemoveAt(0);
 
-                if (XList.Num() > SmoothingBufferSize) XList.RemoveAt(0);
-                if (YList.Num() > SmoothingBufferSize) YList.RemoveAt(0);
-                if (ZAxis && ZList.Num() > SmoothingBufferSize) ZList.RemoveAt(0);
-
-                X = CalculateAverage(XList);
-                Y = CalculateAverage(YList);
-                Z = ZAxis ? CalculateAverage(ZList) : Z;
-            }
-            newLocation = FVector(X, Y, Z);
-            //UE_LOG(LogTemp, Error, TEXT("X: %f, Y: %f, Z: %f"), X, Y, Z)
-            return true; 
-        } 
-    }
-
-    return false; 
+           X = CalculateAverage(XList);
+           Y = CalculateAverage(YList);
+           Z = ZAxis ? CalculateAverage(ZList) : Z;
+       }
+       OnFaceMoved.Execute(FVector(X, Y, Z));
+       //UE_LOG(LogTemp, Error, TEXT("X: %f, Y: %f, Z: %f"), X, Y, Z)        
+   }
 }
 
 /*

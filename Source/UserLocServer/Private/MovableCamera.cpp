@@ -1,10 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+#include <ctime>
 #include <chrono>
 #include <iostream>
-#include <chrono>
 #include <fstream>
 #include <string>
+#include <iomanip> // for std::put_time
+
 #include "MovableCamera.h"
 
 // Sets default values
@@ -13,6 +15,7 @@ AMovableCamera::AMovableCamera()
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
     HeadTrackingComponent = CreateDefaultSubobject<UHeadTracking>(TEXT("HeadTrackingComponent"));
+    HeadTrackingComponent->OnFaceMoved.BindUObject(this, &AMovableCamera::UpdatePosition);
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	RootComponent = CameraComponent;
     
@@ -42,13 +45,6 @@ AMovableCamera::AMovableCamera()
     // Set the scalars used in camera movement.
     Scalar_X = (WidthUE / 480.0f);
     Scalar_Y = (HeightUE / 480.0f);
-
-
-    BlurCounter = 0;
-    bHasDebugMessage = false; 
-
-    // Initilize the new location as a vector 
-    newLocation = FVector();
 }
 
 
@@ -57,6 +53,7 @@ void AMovableCamera::BeginPlay()
 {
 	Super::BeginPlay();
     HeadTrackingComponent->StartHeadTracking();
+    // Bind the delegate to the UpdatePosition function
 
     APlayerController* PlayerController = GetWorld()->GetFirstPlayerController(); // Retrieves the FP controller.
     // If FP controller is found, set new actor location and rotation.
@@ -80,7 +77,6 @@ void AMovableCamera::BeginPlay()
 void AMovableCamera::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-    UpdatePosition();
 }
 
 
@@ -179,18 +175,37 @@ float AMovableCamera::rotation_pitch(float current_pitch, float y_change, float 
     return current_pitch + (targetPitch - current_pitch) * 0.1;
 };
 
+
 /*
-// Define a helper function to get current time as a float
-float getCurrentTimeInSeconds() {
-    // Calculate the offset from the start time to the current time
-    FDateTime StartOf2024(2024, 5, 3, 14, 30, 0, 0);
-    double StartOf2024Timestamp = StartOf2024.ToUnixTimestamp();
-    double CurrentTime = FPlatformTime::Seconds();
-    return (CurrentTime - StartOf2024Timestamp);
-}*/
+    Function to get current time and format it
+*/ 
+std::string GetCurrentTimeFormatted() {
+    // Get the current time point
+    auto now = std::chrono::system_clock::now();
+
+    // Convert the time point to a time_t object
+    std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
+
+    // Convert time_t to tm (broken down time)
+    std::tm* now_tm = std::localtime(&now_time_t);
+
+    // Get fractional seconds
+    auto fractional_seconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count() % 1000;
+
+    // Format the time as a string
+    char buffer[80];
+    std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", now_tm); // Format date and time
+
+    // Append milliseconds
+    std::string result(buffer);
+    result += "." + std::to_string(fractional_seconds);
+
+    return result;
+}
+
 
 // Update the position of the movable camera, called each tick.
-void AMovableCamera::UpdatePosition()
+void AMovableCamera::UpdatePosition(FVector newLocation)
 {
     // Retriving the last known position and rotation of camera component 
     FVector LastKnownPosition = StartLocation;
@@ -199,12 +214,10 @@ void AMovableCamera::UpdatePosition()
     FVector LastLocation = FVector(newLocation.X, newLocation.Y, newLocation.Z);
 
     // Gets the face coordinates from the headtracking component.
-    bool bDidGetCoords = HeadTrackingComponent->GetFaceCoordinates(newLocation);
+    //bool bDidGetCoords = HeadTrackingComponent->ExtractFaceCoordinateData(newLocation);
 
     // Check if we need to tell the user if they are out of view by blocking the main thread of the program  
-    if (OutOfBounds(bDidGetCoords)) return; // No need to update the postion. Exit the function
-
-    //UE_LOG(LogTemp, Warning, TEXT("NEW LOCATION: %f %f %f"), newLocation.X, newLocation.Y, newLocation.Z);
+    //if (OutOfBounds(bDidGetCoords)) return; // No need to update the postion. Exit the function
 
     // New position of the camera after handling as FVector, the standard format of coordinates.
     if (IncludeMovement)
@@ -247,46 +260,19 @@ void AMovableCamera::UpdatePosition()
         CameraComponent->SetFieldOfView(new_fov);
     }
 
-    // Calculate latency
-    //float latency = (getCurrentTimeInSeconds() - HeadTrackingComponent->packet_sent_time);
-
-    // UE_LOG(LogTemp, Warning, TEXT("Latency: %f"), latency);
-    //UE_LOG(LogTemp, Error, TEXT("Python: %f"), HeadTrackingComponent->packet_sent_time);
-    //UE_LOG(LogTemp, Error, TEXT("C++: %f"), getCurrentTimeInSeconds());
-
-    // Calculate the offset from the start time to the current time
-    FDateTime StartOf2024(2024, 5, 3, 14, 30, 0, 0);
-    double StartOf2024Timestamp = StartOf2024.ToUnixTimestamp();
-    double CurrentTime = FPlatformTime::Seconds();
-    double CurrentTimeOffset = (CurrentTime - StartOf2024Timestamp);
-
-    // Adjust timestamp to start from the beginning of 2024
-    double AdjustedTimestamp = (HeadTrackingComponent->packet_sent_time / 1000.0) + StartOf2024Timestamp;
-
-    // Calculate latency
-    CurrentTime = FPlatformTime::Seconds();
-    CurrentTimeOffset = (CurrentTime - StartOf2024Timestamp);
-    float latency = (CurrentTimeOffset - AdjustedTimestamp);
-    UE_LOG(LogTemp, Warning, TEXT("Latency: %f"), latency);
-    /*
-    // Convert latency to string
-    std::string latencyString = std::to_string(latency);
     // Open the file in append mode
     std::ofstream file("C:\\Users\\sande\\GitHub\\Unreal-facetracking-client\\Logs\\latency_log.txt", std::ios_base::app);
-    //UE_LOG(LogTemp, Error, "%s", FString(file.getloc))
     // Check if the file is open
     if (file.is_open()) {
         // Write the latency string to the file
-        file << latency_index + "," + latencyString << std::endl;
-
+        file << GetCurrentTimeFormatted() << std::endl;
         // Close the file
         file.close();
-        latency_index = latency_index + 1;
     }
     else {
         // Print an error message if the file cannot be opened
         UE_LOG(LogTemp, Error, TEXT("Unable to open file"));
-    }*/
+    }
 }
 
 
