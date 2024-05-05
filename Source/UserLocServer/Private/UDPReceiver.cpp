@@ -2,6 +2,10 @@
 
 #include "UDPReceiver.h"
 
+/*
+    Constuctor of UDP Receiver.
+    Initializes important values.
+*/
 UUDPReceiver::UUDPReceiver()
 {
     // Sets it to be able to tick with world and actor.
@@ -11,7 +15,7 @@ UUDPReceiver::UUDPReceiver()
 }
 
 /*
-* Activates when the game is stopped.
+    Activates when the game is stopped. Resets the component.
 */
 void UUDPReceiver::BeginDestroy()
 {
@@ -27,7 +31,7 @@ void UUDPReceiver::BeginDestroy()
 }
 
 /*
-* Called every frame, as an extention of Tick for an Actor.
+    Called every frame, as an extention of Tick for an Actor.
 */ 
 void UUDPReceiver::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
@@ -42,12 +46,20 @@ void UUDPReceiver::TickComponent(float DeltaTime, ELevelTick TickType, FActorCom
         {
             ReceiveUDPData();
         }
+        
+        if (!Socket->HasPendingData(Size) && OutOfBoundsTick > 100)
+        {
+            // Activates out of bounds message.
+            NoUDPDataReceived.Execute();
+            OutOfBoundsTick = 0;
+        }
+        OutOfBoundsTick++;
     }
 }
 
 /*
-* Starts UDP Receiving.
-* Takes in socketName, IP and Port.
+    Starts UDP Receiving.
+    Takes in socketName, IP and Port.
 */
 bool UUDPReceiver::StartUDPReceiver(const FString& socketName, const FString& TheIP, const int32 ThePort)
 {
@@ -74,8 +86,8 @@ bool UUDPReceiver::StartUDPReceiver(const FString& socketName, const FString& Th
 
 
 /*
-* Function to collect data.
-* Expects FString reference and sets the pointer based on UDP data.
+    Function to collect data.
+    Expects FString reference and sets the pointer based on UDP data.
 */
 void UUDPReceiver::ReceiveUDPData()
 {

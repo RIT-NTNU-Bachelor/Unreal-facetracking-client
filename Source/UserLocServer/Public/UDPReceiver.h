@@ -11,7 +11,10 @@
 
 #include "UDPReceiver.generated.h"
 
+// Delegate which is called whenever UDP data is received.
 DECLARE_DELEGATE_OneParam(FOnUDPDataReceivedSignature, FString)
+// Delegate which is called when no UDP data is received.
+DECLARE_DELEGATE(FNoUDPDataReceivedSignature)
 
 UCLASS(ClassGroup = (UUDPReceiver), meta = (BlueprintSpawnableComponent))
 class USERLOCSERVER_API UUDPReceiver : public UActorComponent
@@ -36,6 +39,8 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	FOnUDPDataReceivedSignature UDPDataReceived;
+	FNoUDPDataReceivedSignature NoUDPDataReceived;
 private:
+	uint8 OutOfBoundsTick = 0;
 	uint32 Size;
 };

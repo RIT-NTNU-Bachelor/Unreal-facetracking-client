@@ -14,7 +14,7 @@
 
 #include "MovableCamera.generated.h"
 
-// Delegate signature
+// Delegate for out of bounds screen.
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FFaceDetectionSignature);
 
 USTRUCT(BlueprintType)
@@ -147,8 +147,6 @@ public:
     void LoadPresetsFromDataTable();
 
 private:
-    //FVector newLocation;
-
     // Function to calculate FOV
     float FOV(float z);
 
@@ -171,9 +169,12 @@ private:
 
     float BlurCounter; 
     bool bHasDebugMessage; 
+    bool bLogTimestamps = true;
+    bool bOutOfBoundsShowing;
 
     // Function for telling the user that they are out of view 
-    bool OutOfBounds(bool has_coords); 
+    void OutOfBounds(); 
+    void InBounds(); 
 
     // Function for updating the user postion 
     void UpdatePosition(FVector NewLocation);

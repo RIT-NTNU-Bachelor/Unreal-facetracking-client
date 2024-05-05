@@ -12,8 +12,13 @@
 
 #include "HeadTracking.generated.h"
 
+// Delegate which is called whenever the face coordinate has changed.
 DECLARE_DELEGATE_OneParam(FOnFaceMoved, FVector)
 
+/*
+    Struct used for Head Tracking presets.
+    Each struct is considered a row in a Data Table using this as base.
+*/
 USTRUCT(BlueprintType)
 struct FHeadTrackingPresets : public FTableRowBase
 {
@@ -47,6 +52,7 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Networking")
         UUDPReceiver* UDPReceiverComponent;
 
+    // Function to extract face coordinates from UDP data packets.
     void ExtractFaceCoordinateData(FString Data);
 
     // Use smoothing or not when tracking head.
@@ -65,20 +71,14 @@ public:
     UPROPERTY(EditAnywhere, Category = "Head Tracking (Server)")
         FVector CameraCentering;
 
-    // Camera sender modifier.
-    UPROPERTY(EditAnywhere, Category = "Head Tracking (Server)")
-        bool TrackLatency;
-
-    float packet_sent_time;
-
     // Delegate signature
     FOnFaceMoved OnFaceMoved;
 private:
-    // X and Y coordinate lists for average calculation.
     float X;
     float Y;
     float Z;
-   
+    
+    // X and Y coordinate lists for average calculation.
     TArray<float> XList;
     TArray<float> YList;
     TArray<float> ZList;
