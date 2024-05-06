@@ -48,22 +48,20 @@ void UUDPReceiver::TickComponent(float DeltaTime, ELevelTick TickType, FActorCom
     }
     else 
     {
-        bHasPendingData = Socket->HasPendingData(Size);
-
         // Continuous operation of UDP receiver
-        while (bHasPendingData)
+        while (Socket->HasPendingData(Size))
         {
             ReceiveUDPData();
-        }
-        
-        if (!bHasPendingData && OutOfBoundsTick > OutOfBoundsSensitivity)
-        {
-            // Activates out of bounds message.
-            NoUDPDataReceived.Execute();
             OutOfBoundsTick = 0;
         }
-        else
+        
+        // Activates out of bounds message.
+        if (!Socket->HasPendingData(Size)) 
         {
+            if (OutOfBoundsTick > OutOfBoundsSensitivity) 
+            {
+                NoUDPDataReceived.Execute();
+            }
             OutOfBoundsTick++;
         }
     }

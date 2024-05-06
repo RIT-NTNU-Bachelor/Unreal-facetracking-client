@@ -200,7 +200,7 @@ std::string GetCurrentTimeFormatted() {
     std::tm* now_tm = std::localtime(&now_time_t);
 
     // Get fractional seconds
-    auto fractional_seconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count() % 1000;
+    auto fractional_seconds = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count() % 1000000;
 
     // Format the time as a string
     char buffer[80];
@@ -298,14 +298,14 @@ void AMovableCamera::ChangeCameraSettings(FCameraPreset Preset)
     IncludeRotation = Preset.IncRot;
     IncludeMovement = Preset.IncMov;
     FOVEnabled = Preset.IncFov;
-    
+
     XMovementSensitivity = Preset.XMoveSen;
     YMovementSensitivity = Preset.YMoveSen;
     ZMovementSensitivity = Preset.ZMoveSen;
-    
+
     YawSensitivity = Preset.XRotSen;
     PitchSensitivity = Preset.YRotSen;
-    
+
     FOVSensitivity = Preset.FOVSen;
 }
 
@@ -333,7 +333,7 @@ void AMovableCamera::SetLevelSpecificSettings(FLevelSpecificSettings LevelSettin
 
 /*
     Function to load presets from data table.
-*/ 
+*/
 void AMovableCamera::LoadPresetsFromDataTable()
 {
     // If preset data table exist, do this..
