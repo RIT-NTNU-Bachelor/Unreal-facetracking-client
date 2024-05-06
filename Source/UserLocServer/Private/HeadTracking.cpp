@@ -1,7 +1,16 @@
 // HeadTrackingActor.cpp
 
 #include "HeadTracking.h"
+#include "CoreMinimal.h"
+#include "GameFramework/Pawn.h"
+#include "Camera/CameraComponent.h"
+#include "EngineUtils.h"
+#include <iostream>
 
+/*
+    Constructor of Head Tracking component.
+    Initializes important values.
+*/
 UHeadTracking::UHeadTracking()
 {
     // Sets it to be able to tick with world and actor.
@@ -13,10 +22,12 @@ UHeadTracking::UHeadTracking()
 
     // Create and attach the UDPReceiver component
     UDPReceiverComponent = CreateDefaultSubobject<UUDPReceiver>(TEXT("UDPReceiverComponent"));
+    UDPReceiverComponent->UDPDataReceived.BindUObject(this, &UHeadTracking::ExtractFaceCoordinateData);
 }
 
+
 /*
-* Runs when the game plays.
+    BeginPlay is called when the game starts, as long as the actor component is present in a level.
 */
 bool UHeadTracking::StartHeadTracking()
 {
@@ -42,16 +53,11 @@ bool UHeadTracking::StartHeadTracking()
     return false;
 }
 
-/*
-* Every tick in the game, this function will be run.
-* It updated the head position using the method: UpdateHeadPosition.
-*/
-void UHeadTracking::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-    FVector newLocation = FVector();
-    GetFaceCoordinates(newLocation);
-}
 
+/*
+    Sets the Head Tracking settings based on preset index, from data table.
+    Parameter FHeadTrackingPresets is a struct made specifically for HT presets.
+*/
 void UHeadTracking::ChangeHeadTrackingPreset(FHeadTrackingPresets Preset)
 {
     UseSmoothing = Preset.SmoothingBool;
@@ -59,60 +65,57 @@ void UHeadTracking::ChangeHeadTrackingPreset(FHeadTrackingPresets Preset)
     ZAxis = Preset.ZBool;
 }
 
+
 /*
-* Updates head position based on the UDP component data.
+    Updates head position based on the UDP component data.
 */
-bool UHeadTracking::GetFaceCoordinates(FVector& newLocation)
-{
-    FString Data = "";
+void UHeadTracking::ExtractFaceCoordinateData(FString Data)
+{    
+   // Data should be have retrived, but if not the tracking component does nothing 
+   if (Data.IsEmpty())
+   {
+       return;
+   }
 
-    if (UDPReceiverComponent->ReceiveUDPData(Data))
-    {
-        // Data should be have retrived, but if not the tracking component does nothing 
-        if (Data.IsEmpty())
-        {
-            return false;
-        }
+   // Assuming the data format is: '(X,Y,Z)' 
+   // Gets the data as bytes 
+   Data = Data.RightChop(1).LeftChop(1);    // Removes [ ]
 
-        // Assuming the data format is: '(X,Y,Z)' 
-        // Gets the data as bytes 
-        Data = Data.RightChop(1).LeftChop(1);    // Removes '( )'
+   // Parse the data into a list of points 
+   TArray<FString> Points;
+   
+   Data.ParseIntoArray(Points, TEXT(","), true);
+   
+   if (Points.Num() >= 2) // 2 or more points: x, y, may also include z.
+   {
+       X = (FCString::Atof(*Points[0]) - CameraCentering.X); // Parses X into float from FCString.
+       Y = (FCString::Atof(*Points[1]) - CameraCentering.Y); // Parses Y into float from FCString.
+       Z = (Points.Num() > 2 && ZAxis) ? (FCString::Atof(*Points[2]) - CameraCentering.Z) : 0.0f;
+       if (bLatencyTesting) SendIndex = FCString::Atof(*Points[3]);
 
-        // Parse the data into a list of points 
-        TArray<FString> Points;
-        Data.ParseIntoArray(Points, TEXT(","), true);
-        
-        if (Points.Num() >= 2) // 2 or more points: x, y, may also include z.
-        {
-            X = (FCString::Atof(*Points[0]) - CameraCentering.X); // Parses X into float from FCString.
-            Y = (FCString::Atof(*Points[1]) - CameraCentering.Y); // Parses Y into float from FCString.
-            Z = (Points.Num() > 2 && ZAxis) ? (FCString::Atof(*Points[2]) - CameraCentering.Z) : 0.0f;
+       //  Adds the data to a list to find average of X and Y. Smooths the movement.
+       if (UseSmoothing)
+       {
+           XList.Add(X);
+           YList.Add(Y);
+           if (ZAxis) ZList.Add(Z);
 
-            //  Adds the data to a list to find average of X and Y. Smooths the movement.
-            if (UseSmoothing)
-            {
-                XList.Add(X);
-                YList.Add(Y);
-                if (ZAxis) ZList.Add(Z);
+           if (XList.Num() > SmoothingBufferSize) XList.RemoveAt(0);
+           if (YList.Num() > SmoothingBufferSize) YList.RemoveAt(0);
+           if (ZAxis && ZList.Num() > SmoothingBufferSize) ZList.RemoveAt(0);
 
-                if (XList.Num() > SmoothingBufferSize) XList.RemoveAt(0);
-                if (YList.Num() > SmoothingBufferSize) YList.RemoveAt(0);
-                if (ZAxis && ZList.Num() > SmoothingBufferSize) ZList.RemoveAt(0);
-
-                X = CalculateAverage(XList);
-                Y = CalculateAverage(YList);
-                Z = ZAxis ? CalculateAverage(ZList) : Z;
-            }
-            newLocation = FVector(X, Y, Z);
-            return true; 
-        } 
-    }
-
-    return false; 
+           X = CalculateAverage(XList);
+           Y = CalculateAverage(YList);
+           Z = ZAxis ? CalculateAverage(ZList) : Z;
+       }
+       OnFaceMoved.Execute(FVector(X, Y, Z));
+       UE_LOG(LogTemp, Error, TEXT("X: %f, Y: %f, Z: %f"), X, Y, Z)        
+   }
 }
 
+
 /*
-* Simple average calculation.
+    Simple average calculation.
 */
 float UHeadTracking::CalculateAverage(const TArray<float>& Values)
 {

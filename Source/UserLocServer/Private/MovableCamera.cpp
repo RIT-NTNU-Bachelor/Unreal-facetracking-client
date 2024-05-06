@@ -2,12 +2,26 @@
 
 #include "MovableCamera.h"
 
-// Sets default values
+#include "GameFramework/Pawn.h"
+#include <chrono>
+#include <fstream>      // Used for writing to file.
+#include <string>
+#include <iomanip>      // for std::put_time
+#include <iostream>
+#include "CoreMinimal.h"
+#include "EngineUtils.h"
+
+/*
+    Constructor of Movable Camera.
+    Initializes important values.
+*/
 AMovableCamera::AMovableCamera()
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
     HeadTrackingComponent = CreateDefaultSubobject<UHeadTracking>(TEXT("HeadTrackingComponent"));
+    HeadTrackingComponent->OnFaceMoved.BindUObject(this, &AMovableCamera::UpdatePosition);
+    HeadTrackingComponent->UDPReceiverComponent->NoUDPDataReceived.BindUObject(this, &AMovableCamera::OutOfBounds);
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	RootComponent = CameraComponent;
     
@@ -37,21 +51,17 @@ AMovableCamera::AMovableCamera()
     // Set the scalars used in camera movement.
     Scalar_X = (WidthUE / 480.0f);
     Scalar_Y = (HeightUE / 480.0f);
-
-
-    BlurCounter = 0;
-    bHasDebugMessage = false; 
-
-    // Initilize the new location as a vector 
-    newLocation = FVector();
 }
 
 
-// Called when the game starts or when spawned
+/*
+    BeginPlay is called when the game starts, as long as the actor is present in a level.
+*/
 void AMovableCamera::BeginPlay()
 {
 	Super::BeginPlay();
     HeadTrackingComponent->StartHeadTracking();
+    // Bind the delegate to the UpdatePosition function
 
     APlayerController* PlayerController = GetWorld()->GetFirstPlayerController(); // Retrieves the FP controller.
     // If FP controller is found, set new actor location and rotation.
@@ -71,11 +81,12 @@ void AMovableCamera::BeginPlay()
 }
 
 
-// Called every frame
+/*
+    Functionality which is run every frame.
+*/ 
 void AMovableCamera::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-    UpdatePosition();
 }
 
 
@@ -143,7 +154,6 @@ float  AMovableCamera::TranslateY(float y_opencv) {
     The distance has a minimal impact, due to logmaritic scale. This is because of the value range of Zs
 
     Returns the new yaw
-
 */
 float AMovableCamera::rotation_yaw(float current_yaw, float x_change, float z_change) {
     float depthScale = 1 / (1 + z_change / MaxZ); 
@@ -163,7 +173,6 @@ float AMovableCamera::rotation_yaw(float current_yaw, float x_change, float z_ch
     The distance has a minimal impact, due to logmaritic scale. This is because of the value range of Z  
 
     Returns the new pitch
-
 */
 float AMovableCamera::rotation_pitch(float current_pitch, float y_change, float z_change) {
     float depthScale = 1 / (1 + z_change / MaxZ);
@@ -174,22 +183,48 @@ float AMovableCamera::rotation_pitch(float current_pitch, float y_change, float 
     return current_pitch + (targetPitch - current_pitch) * 0.1;
 };
 
-// Update the position of the movable camera, called each tick.
-void AMovableCamera::UpdatePosition()
+
+/*
+    Function to get current time and format it.
+    Only used in latency testing.
+    May impact performance when enabled.
+*/ 
+std::string GetCurrentTimeFormatted() {
+    // Get the current time point
+    auto now = std::chrono::system_clock::now();
+
+    // Convert the time point to a time_t object
+    std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
+
+    // Convert time_t to tm (broken down time)
+    std::tm* now_tm = std::localtime(&now_time_t);
+
+    // Get fractional seconds
+    auto fractional_seconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count() % 1000;
+
+    // Format the time as a string
+    char buffer[80];
+    std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", now_tm); // Format date and time
+
+    // Append milliseconds
+    std::string result(buffer);
+    result += "." + std::to_string(fractional_seconds);
+
+    return result;
+}
+
+
+/*
+    Update the position of the movable camera, called each delegate execution.
+    Parameter newLocation is a FVector comprised of updated X, Y, Z coordinates.
+*/ 
+void AMovableCamera::UpdatePosition(FVector newLocation)
 {
+    InBounds();
+
     // Retriving the last known position and rotation of camera component 
     FVector LastKnownPosition = StartLocation;
     FRotator LastKnownRotation = StartDirection;
-
-    FVector LastLocation = FVector(newLocation.X, newLocation.Y, newLocation.Z);
-
-    // Gets the face coordinates from the headtracking component.
-    bool bDidGetCoords = HeadTrackingComponent->GetFaceCoordinates(newLocation);
-
-    // Check if we need to tell the user if they are out of view by blocking the main thread of the program  
-    if (OutOfBounds(bDidGetCoords)) return; // No need to update the postion. Exit the function
-
-    //UE_LOG(LogTemp, Warning, TEXT("NEW LOCATION: %f %f %f"), newLocation.X, newLocation.Y, newLocation.Z);
 
     // New position of the camera after handling as FVector, the standard format of coordinates.
     if (IncludeMovement)
@@ -203,7 +238,8 @@ void AMovableCamera::UpdatePosition()
         // Translating the cordinates relative to the cameras axis 
         // Note that the camera has its own axis - i.e its important to note that we set the new values based on the cameras axis.  
         LastKnownPosition = StartLocation + FVector(Z, -X, -Y);
-        CameraComponent->SetRelativeLocation(LastKnownPosition); // Sets new position in the world.
+        // Sets new position in the world, relative to parent.
+        CameraComponent->SetRelativeLocation(LastKnownPosition); 
         //UE_LOG(LogTemp, Warning, TEXT("X: %f, Y: %f, Z: %f"), X, Y, Z);
     }
 
@@ -231,10 +267,31 @@ void AMovableCamera::UpdatePosition()
         float new_fov = this->FOV(z_opencv);
         CameraComponent->SetFieldOfView(new_fov);
     }
+
+    // Latency testing. Writes timestamp to file in Logs. bLogTimestamps is false by default. !!!Only fuctional with Windows!!!
+    if (HeadTrackingComponent->bLatencyTesting)
+    {
+        // Open the file in append mode. Enter own file path for latency testing.
+        std::ofstream file("C:\\Users\\sande\\GitHub\\Unreal-facetracking-client\\Logs\\latency_log.txt", std::ios_base::app);
+        // Check if the file is open
+        if (file.is_open()) {
+            // Write the latency string to the file
+            file << HeadTrackingComponent->SendIndex << "," << GetCurrentTimeFormatted() << std::endl;
+            // Close the file
+            file.close();
+        }
+        else {
+            // Print an error message if the file cannot be opened
+            UE_LOG(LogTemp, Error, TEXT("Unable to open file"));
+        }
+    }
 }
 
 
-// Sets the camera settings based on preset index, from data table.
+/*
+    Sets the camera settings based on preset index, from data table.
+    Parameter FCameraPreset is a struct made specifically for movable camera presets.
+*/
 void AMovableCamera::ChangeCameraSettings(FCameraPreset Preset)
 {
     // Set the camera properties based on the preset
@@ -252,11 +309,21 @@ void AMovableCamera::ChangeCameraSettings(FCameraPreset Preset)
     FOVSensitivity = Preset.FOVSen;
 }
 
+
+/*
+    Function to set new camera center, using keybinds.
+*/
 void AMovableCamera::CenterCamera(FVector NewCenter)
 {
     StartLocation = NewCenter;
 }
 
+
+/*
+    Function to set level specific settings.
+    As of version 1.0.0, only start location and direction is set.
+    Specifically used for Reset camera functionality.
+*/
 void AMovableCamera::SetLevelSpecificSettings(FLevelSpecificSettings LevelSetting)
 {
     StartLocation = LevelSetting.StartLoc;
@@ -264,7 +331,9 @@ void AMovableCamera::SetLevelSpecificSettings(FLevelSpecificSettings LevelSettin
 }
 
 
-// Loads presets from data table.
+/*
+    Function to load presets from data table.
+*/ 
 void AMovableCamera::LoadPresetsFromDataTable()
 {
     // If preset data table exist, do this..
@@ -289,32 +358,26 @@ void AMovableCamera::LoadPresetsFromDataTable()
 
 
 /*
-    Function for printing a message to the user is out of view of the camera.
-    Will set the field of view to zero and add the message to the screen telling the user to move back into frame. 
-
-    Returns true if the user is out of view 
+    Function for OPENING out of bounds message, which pops up if user is out of view of the camera.
 */
-bool AMovableCamera::OutOfBounds(bool in_view) {
+void AMovableCamera::OutOfBounds() {
     // If the face is not in view, enter this if statement.
-    if (!in_view) {
-        // Has to go at least 5 ticks without seing the user in a row. 
-        if (BlurCounter > 5) {
-            if (!bHasDebugMessage) {
-                // Out of bounds not enabled.
-                if (OutOfBoundsEnabled) OnFaceLost.Broadcast();
-                UE_LOG(LogTemp, Warning, TEXT("%b"), OutOfBoundsEnabled);
-                bHasDebugMessage = true;
-            }
-            return true; 
-        }
-        // Increment the amount of frames the user was out of view. 
-        BlurCounter += 1;
+    if (OutOfBoundsEnabled && !bOutOfBoundsShowing)
+    {
+        OnFaceLost.Broadcast();
+        bOutOfBoundsShowing = true;
     }
-    else {
-        if (bHasDebugMessage && OutOfBoundsEnabled) OnFaceFound.Broadcast();
-        // A frame with the user 
-        bHasDebugMessage = false;
-        BlurCounter = 0; 
+}
+
+
+/*
+    Function for CLOSING out of bounds message, which pops up if user is out of view of the camera.
+*/
+void AMovableCamera::InBounds() {
+    // If the face is in view, enter this if statement.
+    if (OutOfBoundsEnabled && bOutOfBoundsShowing)
+    {
+        OnFaceFound.Broadcast();
+        bOutOfBoundsShowing = false;
     }
-    return false; 
-};
+}

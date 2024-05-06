@@ -1,17 +1,17 @@
 // HeadTrackingActor.h
 
 #pragma once
-
-#include "CoreMinimal.h"
-#include "GameFramework/Pawn.h"
-#include "Camera/CameraComponent.h"
-#include "EngineUtils.h"
 #include "UDPReceiver.h"
 #include "Engine/DataTable.h"
-#include <iostream>
-
 #include "HeadTracking.generated.h"
 
+// Delegate which is called whenever the face coordinate has changed.
+DECLARE_DELEGATE_OneParam(FOnFaceMoved, FVector)
+
+/*
+    Struct used for Head Tracking presets.
+    Each struct is considered a row in a Data Table using this as base.
+*/
 USTRUCT(BlueprintType)
 struct FHeadTrackingPresets : public FTableRowBase
 {
@@ -41,14 +41,12 @@ public:
     // Called when the game starts or when spawned
     bool StartHeadTracking();
 
-    // Called every frame
-    void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
     // Sets new property and UDP receiver component. Necessary to use the custom UDPReceiver component.
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Networking")
         UUDPReceiver* UDPReceiverComponent;
 
-    bool GetFaceCoordinates(FVector&);
+    // Function to extract face coordinates from UDP data packets.
+    void ExtractFaceCoordinateData(FString Data);
 
     // Use smoothing or not when tracking head.
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Head Tracking (Server)")
@@ -66,12 +64,18 @@ public:
     UPROPERTY(EditAnywhere, Category = "Head Tracking (Server)")
         FVector CameraCentering;
 
+    // Delegate signature
+    FOnFaceMoved OnFaceMoved;
+
+    // Boolean for testing latency, if true it expects another value from python server: send index (0..N).
+    bool bLatencyTesting = false;
+    float SendIndex;
 private:
-    // X and Y coordinate lists for average calculation.
     float X;
     float Y;
     float Z;
-   
+    
+    // X and Y coordinate lists for average calculation.
     TArray<float> XList;
     TArray<float> YList;
     TArray<float> ZList;

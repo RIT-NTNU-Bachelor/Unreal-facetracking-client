@@ -13,3 +13,5 @@ Packaging
 *.suo
 *.xcodeproj
 *.xcworkspace
+Logs
+Packaged
