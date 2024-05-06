@@ -46,20 +46,26 @@ void UUDPReceiver::TickComponent(float DeltaTime, ELevelTick TickType, FActorCom
         UE_LOG(LogTemp, Error, TEXT("UDP: Failed to create listener socket!"));
         return;
     }
-    else {
+    else 
+    {
+        bHasPendingData = Socket->HasPendingData(Size);
+
         // Continuous operation of UDP receiver
-        while (Socket->HasPendingData(Size))
+        while (bHasPendingData)
         {
             ReceiveUDPData();
         }
         
-        if (!Socket->HasPendingData(Size) && OutOfBoundsTick > OutOfBoundsSensitivity)
+        if (!bHasPendingData && OutOfBoundsTick > OutOfBoundsSensitivity)
         {
             // Activates out of bounds message.
             NoUDPDataReceived.Execute();
             OutOfBoundsTick = 0;
         }
-        OutOfBoundsTick++;
+        else
+        {
+            OutOfBoundsTick++;
+        }
     }
 }
 

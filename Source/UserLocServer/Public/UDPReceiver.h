@@ -29,9 +29,9 @@ public:
 	// Extention of Tick function for an actor, will run in tandem.
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	// Set OOB sensitivity, default 250 ticks.
+	// Set OOB sensitivity, default 100 ticks.
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera Tweaking")
-		int32 OutOfBoundsSensitivity = 250;                
+		int32 OutOfBoundsSensitivity = 100;                
 
 	// Delegate declarations used for udp data receival or if none is incoming.
 	FOnUDPDataReceivedSignature UDPDataReceived;
@@ -40,4 +40,5 @@ private:
 	// Private variables
 	uint8 OutOfBoundsTick = 0;
 	uint32 Size;
+	bool bHasPendingData;
 };
