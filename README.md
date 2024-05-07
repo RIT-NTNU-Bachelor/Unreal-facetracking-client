@@ -127,6 +127,11 @@ The system consists of two primary components: the Face Tracking server and the 
 ## Credits
 
 The tutorial from CVZone, has been used to further progress the project. It involves corresponding movement from face tracking coordinates into Unity. Big changes has been made, but core principles from CVZone is used. Link: [3D Headtracking with car movement](https://www.computervision.zone/courses/3d-head-tracking-with-car-movement/)
+Kettle model from Sketchfab user: nadia\_sob. 
+Target model from Sketchfab user: AnshiNoWara NG+.
+Tree model from Sketchfab user: Andriy Shekh.
+Train model from Sketchfab user: Marcus4rt.
+Barrel 3D model from Sketchfab user: Blender3D.
 
 ## License
 

@@ -68,7 +68,7 @@ public:
     FOnFaceMoved OnFaceMoved;
 
     // Boolean for testing latency, if true it expects another value from python server: send index (0..N).
-    bool bLatencyTesting = false;
+    bool bLatencyTesting = true;
     float SendIndex;
 private:
     float X;
